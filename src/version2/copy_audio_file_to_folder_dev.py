@@ -1,5 +1,4 @@
 import os
-import matplotlib.pyplot as plt
 import pandas as pd
 import random
 import shutil
@@ -7,10 +6,10 @@ import shutil
 # Get the bonafide and spoof each 500 files. 
 
 # Create a directory to store the audio
-destination_folder1 = "D:/graduate_project/src/LATrain_audio_shuffle2"
-destination_folder2 = "D:/graduate_project/src/LATrain_audio_shuffle3"
-destination_folder3 = "D:/graduate_project/src/LATrain_audio_shuffle4"
-source_folder = "D:/graduate_project/src/asvpoof-2019-dataset/LA/LA/ASVspoof2019_LA_train/flac"
+destination_folder1 = "D:/graduate_project/src/LADev_audio_shuffle1"
+destination_folder2 = "D:/graduate_project/src/LADev_audio_shuffle2"
+destination_folder3 = "D:/graduate_project/src/LADev_audio_shuffle3"
+source_folder = "D:/graduate_project/src/asvpoof-2019-dataset/LA/LA/ASVspoof2019_LA_dev/flac"
 
 NUM = 500 # number of files
 NUM2 = 1000 # number of files
@@ -19,9 +18,9 @@ if __name__ == "__main__":
     os.makedirs(destination_folder2, exist_ok=True)
     os.makedirs(destination_folder3, exist_ok=True)
 
-    train_df = pd.read_csv("train_info.csv")
-    # 0~2579 is 0, 2580~25379 is 1.
-    L = list(range(0, 2580)) # get the first 500 audios index
+    train_df = pd.read_csv("dev_info.csv")
+    # 0~2547 is 0, 2548~24843 is 1.
+    L = list(range(0, 2548)) # get the first 500 audios index
     random.shuffle(L)
     l1 = L[:NUM]
     l2 = L[NUM:2*NUM]
@@ -32,7 +31,7 @@ if __name__ == "__main__":
     row_bonafide3 = train_df.iloc[l3].copy()
 
 
-    L = list(range(2580, 25380))
+    L = list(range(2548, 24844))
     random.shuffle(L)
     L1 = L[:NUM2]
     L2 = L[NUM2:2*NUM2]
@@ -58,7 +57,7 @@ if __name__ == "__main__":
         # Copy the file to the destination folder instead of moving
         shutil.copy(source_path, destination_path)
 
-    print(f"{NUM} Spoof files move successfully into {destination_folder1}.")
+    print(f"{NUM2} Spoof files move successfully into {destination_folder1}.")
 
     ###############
     # Iterate through files in the source folder
@@ -78,7 +77,7 @@ if __name__ == "__main__":
         # Copy the file to the destination folder instead of moving
         shutil.copy(source_path, destination_path)
 
-    print(f"{NUM} Spoof files move successfully into {destination_folder2}.")
+    print(f"{NUM2} Spoof files move successfully into {destination_folder2}.")
     #################
      # Iterate through files in the source folder
     for index, r in row_bonafide3.iterrows():
@@ -97,5 +96,5 @@ if __name__ == "__main__":
         # Copy the file to the destination folder instead of moving
         shutil.copy(source_path, destination_path)
 
-    print(f"{NUM} Spoof files move successfully into {destination_folder3}.")
+    print(f"{NUM2} Spoof files move successfully into {destination_folder3}.")
     #################
