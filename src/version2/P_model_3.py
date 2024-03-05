@@ -65,8 +65,11 @@ def get_train_test_dataloader(image_folder_path):
     train_size = int(0.7 * len(train_data))
     valid_size = len(train_data) - train_size
 
+    # Set random seed
+    torch.manual_seed(42)
+
     # Split into train and validation sets
-    train_dataset, valid_dataset = torch.utils.data.random_split(train_data, [train_size, valid_size])
+    train_dataset, valid_dataset = torch.utils.data.random_split(train_data, [train_size, valid_size], generator=torch.Generator().manual_seed(42))
 
     # Create DataLoader for train and validation sets
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size_train, shuffle=True)
@@ -240,7 +243,7 @@ if __name__ == "__main__":
     # 讀取LA_train_info
     train_df = pd.read_csv("train_info.csv")
     # Load Images from a Folder
-    image_folder_path = r"D:/graduate_project/src/spec_LATrain_audio_shuffle1_NOT_preprocessing"
+    image_folder_path = r"D:/graduate_project/src/spec_LATrain_audio_shuffle2_NOT_preprocessing"
     train_dataloader, valid_dataloader = get_train_test_dataloader(image_folder_path)
     print("Loaded data.")
 
@@ -275,8 +278,10 @@ if __name__ == "__main__":
     # save the fig of the loss and accuracy
     plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_training_accuracy, Total_validation_accuracy)
 
-    save_parameters = True
+    save_parameters = False
     if save_parameters:
         path = 'model_3.h5'
         torch.save(model.state_dict(), path)
         print(f"Save parameters in {path}")
+    else:
+        print("Not save the parameters.")
