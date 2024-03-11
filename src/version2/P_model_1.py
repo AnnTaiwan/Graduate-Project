@@ -14,7 +14,7 @@ import os
 from torchsummary import summary
 import time
 # Hyper Parameters
-LR = 0.02
+LR = 0.02   
 batch_size_train = 10
 batch_size_valid = 5
 # n_iters = 10000
@@ -67,12 +67,12 @@ def get_train_test_dataloader(image_folder_path):
     # Set random seed
     torch.manual_seed(42)
 
-    # Split into train and validation sets
+    # Split into train and validation sets, 固定seed
     train_dataset, valid_dataset = torch.utils.data.random_split(train_data, [train_size, valid_size], generator=torch.Generator().manual_seed(42))
 
     # Create DataLoader for train and validation sets
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size_train, shuffle=True)
-    valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=batch_size_valid, shuffle=False)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size_train, shuffle=True, pin_memory=True)
+    valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=batch_size_valid, shuffle=False, pin_memory=True)
 
     return train_loader, valid_loader
 

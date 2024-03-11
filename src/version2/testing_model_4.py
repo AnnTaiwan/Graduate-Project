@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import os
 
-from P_model_1 import IMAGE_SIZE, CNN_model1
+from P_model_4 import IMAGE_SIZE, CNN_model4
 from SpectrogramDataset import SpectrogramDataset
 
 BATCH_SIZE_TEST = 50
@@ -70,16 +70,16 @@ if __name__ == "__main__":
     # 讀取LA_dev_info
     dev_df = pd.read_csv("dev_info.csv")
     # Load the model and weights
-    model = CNN_model1()
+    model = CNN_model4()
     # Move model to device
     model.to(device)
-    state_dict = torch.load("model_1.h5")
+    state_dict = torch.load("model_4.h5")
     model.load_state_dict(state_dict)
     # set loss function
     criterion = nn.CrossEntropyLoss()
 
     # Load Images from a Folder
-    image_folder_path = r"D:/graduate_project/src/spec_LADev_audio_shuffle1_NOT_preprocessing"
+    image_folder_path = r"D:/graduate_project/src/spec_LADev_audio_shuffle3_NOT_preprocessing"
     # Load images into test_dataloader
     test_dataloader = get_test_dataloader(image_folder_path)
     print(f"Loaded test data from {image_folder_path}.")

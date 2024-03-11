@@ -68,7 +68,7 @@ if __name__ == "__main__":
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Test on {device}.")
     # 讀取LA_dev_info
-    dev_df = pd.read_csv("dev_info.csv")
+    dev_df = pd.read_csv("eval_info.csv")
     # Load the model and weights
     model = CNN_model3()
     # Move model to device
@@ -79,10 +79,10 @@ if __name__ == "__main__":
     criterion = nn.CrossEntropyLoss()
 
     # Load Images from a Folder
-    image_folder_path = r"D:/graduate_project/src/spec_LADev_audio_shuffle3_NOT_preprocessing"
+    image_folder_path = r"D:/graduate_project/src/spec_LAEval_audio_shuffle3_NOT_preprocessing"
     # Load images into test_dataloader
     test_dataloader = get_test_dataloader(image_folder_path)
-    print("Loaded test data.")
+    print(f"Loaded test data from {image_folder_path}.")
 
     # Start testing
     print("Testing...")

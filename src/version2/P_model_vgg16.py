@@ -2,8 +2,10 @@ from PIL import Image
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torchvision
 import torchvision.transforms as transforms
+import torchvision.models as models
+from torchvision.models.vgg import VGG16_Weights
+
 
 import numpy as np
 import pandas as pd
@@ -15,11 +17,11 @@ import os
 from torchsummary import summary
 import time
 # Hyper Parameters
-LR = 0.02
-batch_size_train = 10
-batch_size_valid = 5
+LR = 0.02   
+batch_size_train = 50
+batch_size_valid = 50
 # n_iters = 10000
-NUM_EPOCHS = 5
+NUM_EPOCHS = 10
 
 IMAGE_SIZE = 128
 transform = transforms.Compose([
@@ -65,48 +67,23 @@ def get_train_test_dataloader(image_folder_path):
     train_size = int(0.7 * len(train_data))
     valid_size = len(train_data) - train_size
 
+    # Set random seed
+    torch.manual_seed(42)
+
     # Split into train and validation sets
-    train_dataset, valid_dataset = torch.utils.data.random_split(train_data, [train_size, valid_size])
+    train_dataset, valid_dataset = torch.utils.data.random_split(train_data, [train_size, valid_size], generator=torch.Generator().manual_seed(42))
 
     # Create DataLoader for train and validation sets
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size_train, shuffle=True, pin_memory=True)
-    valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=batch_size_valid, shuffle=False, pin_memory=True)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size_train, shuffle=True)
+    valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=batch_size_valid, shuffle=False)
 
     return train_loader, valid_loader
 
-# define CNN model
-class CNN_model4(nn.Module):
-    def __init__(self):
-        super(CNN_model4, self).__init__()
-        self.conv1 = nn.Conv2d(3, 32, 3) 
-        self.bn1 = nn.BatchNorm2d(32)  # 添加批次正規化層
-        self.pool1 = nn.MaxPool2d(2, 2) 
-        self.conv2 = nn.Conv2d(32, 64, 4) 
-        self.bn2 = nn.BatchNorm2d(64)  # 添加批次正規化層
-        self.pool2 = nn.MaxPool2d(2, 2) 
-        self.fc1 = nn.Linear(64 * 30 * 30, 512) 
-        self.fc2 = nn.Linear(512, 2) 
-        self.dropout = nn.Dropout(0.25)
-
-    def forward(self, x):
-        x = F.relu(self.bn1(self.conv1(x))) 
-        x = self.pool1(x)
-        x = self.dropout(x)
-        
-        x = F.relu(self.bn2(self.conv2(x))) 
-        x = self.pool2(x)
-        x = self.dropout(x)
-        
-        x = x.view(-1, 64 * 30 * 30) 
-        x = F.relu(self.fc1(x))
-        x = self.dropout(x)
-        x = self.fc2(x)
-        return x
     
 # 訓練模型
 def training(model):
     # 把結果寫入檔案
-    file = open(r"D:\graduate_project\src\version2\training_detail_model4.txt", "w")
+    file = open(r"D:\graduate_project\src\version2\training_detail_model_vgg16_model.txt", "w")
     for epoch in range(NUM_EPOCHS):
         epoch_start_time = time.time()
 
@@ -202,13 +179,13 @@ def training(model):
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
     plt.legend(loc='lower right')
-    plt.savefig(r"D:\graduate_project\src\version2\ROC4.png") 
+    plt.savefig(r"D:\graduate_project\src\version2\ROC_vgg16.png") 
 
     # confusion_matrix
     plt.figure()
     cm = confusion_matrix(all_label, all_pred)
     sns.heatmap(cm, annot=True)
-    plt.savefig(r"D:\graduate_project\src\version2\Confusion_matrix4.png") 
+    plt.savefig(r"D:\graduate_project\src\version2\Confusion_matrix_vgg16.png") 
 
 def plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_training_accuracy, Total_validation_accuracy):
     # visualization the loss and accuracy
@@ -219,7 +196,7 @@ def plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_trai
     plt.xlabel('No. of epochs')
     plt.ylabel('Loss')
     plt.legend()
-    plt.savefig(r"D:\graduate_project\src\version2\Loss4.png") 
+    plt.savefig(r"D:\graduate_project\src\version2\Loss_vgg16.png") 
 
     plt.figure()
     plt.plot(range(NUM_EPOCHS), Total_training_accuracy, 'r-', label='Training_accuracy')
@@ -228,31 +205,47 @@ def plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_trai
     plt.xlabel('No. of epochs')
     plt.ylabel('Accuracy')
     plt.legend()
-    plt.savefig(r"D:\graduate_project\src\version2\Accuracy4.png") 
+    plt.savefig(r"D:\graduate_project\src\version2\Accuracy_vgg16.png") 
 
 
 # Start training
 if __name__ == "__main__":
     # 決定要在CPU or GPU
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cpu')
     print(f"Train on {device}.")
     # 讀取LA_train_info
     train_df = pd.read_csv("train_info.csv")
     # Load Images from a Folder
-    image_folder_path = r"D:/graduate_project/src/spec_LATrain_audio_shuffle1_NOT_preprocessing"
+    image_folder_path = r"D:/graduate_project/src/spec_LATrain_audio_shuffle2_NOT_preprocessing"
     train_dataloader, valid_dataloader = get_train_test_dataloader(image_folder_path)
     print("Loaded data.")
 
-    # set up a model , turn model into cuda
-    model = CNN_model4().to(device)
+    vgg16_model = models.vgg16(weights=VGG16_Weights.DEFAULT)     # 使用內建的 model
+
+    # 調整成是兩個輸出神經元，真或假
+    # # Freeze all layers except the final classifier
+    # for param in vgg16_model.parameters():
+    #     param.requires_grad = False
+
+    # Freeze all layers except the final classifier
+    for name, param in vgg16_model.named_parameters():
+        if "classifier" not in name:
+            param.requires_grad = False
+
+    # Modify the final classifier
+    num_features = vgg16_model.classifier[6].in_features
+    vgg16_model.classifier[6] = nn.Linear(num_features, 2)  # Modify to have 2 output features
+
+    # Move the model to the CUDA device
+    # vgg16_model = vgg16_model.to(device)
 
     # set loss function
     criterion = nn.CrossEntropyLoss()
     # set optimizer
-    optimizer = torch.optim.SGD(model.parameters(), lr=LR)   # optimize all cnn parameters
+    optimizer = torch.optim.SGD(vgg16_model.parameters(), lr=LR)   # optimize all cnn parameters
 
     # Print the model summary
-    summary(model, (3, IMAGE_SIZE, IMAGE_SIZE)) # Input size: (channels, height, width)
+    # summary(vgg16_model, (3, IMAGE_SIZE, IMAGE_SIZE)) # Input size: (channels, height, width)
 
     # 初始時間
     start_time = time.time()
@@ -264,7 +257,7 @@ if __name__ == "__main__":
 
     print("Start training....")
     # Start training
-    training(model)
+    training(vgg16_model)
 
     # 計算總時間
     end_time = time.time()
@@ -274,15 +267,10 @@ if __name__ == "__main__":
     # save the fig of the loss and accuracy
     plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_training_accuracy, Total_validation_accuracy)
 
-    '''之後預測時:
-    Make sure to call model.eval() after loading the model state dictionary to set the model to evaluation 
-    mode, which ensures that batch normalization layers use the saved statistics rather than 
-    computing new ones based on the current mini-batch.
-    '''
     save_parameters = False
     if save_parameters:
-        path = 'model_4.h5'
-        torch.save(model.state_dict(), path)
+        path = 'model_vgg16.h5'
+        torch.save(vgg16_model.state_dict(), path)
         print(f"Save parameters in {path}")
     else:
         print("Not save the parameters.")
