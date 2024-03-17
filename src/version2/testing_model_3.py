@@ -73,7 +73,7 @@ if __name__ == "__main__":
     model = CNN_model3()
     # Move model to device
     model.to(device)
-    state_dict = torch.load("model_3.h5")
+    state_dict = torch.load("model_3_3000images.h5")
     model.load_state_dict(state_dict)
     # set loss function
     criterion = nn.CrossEntropyLoss()

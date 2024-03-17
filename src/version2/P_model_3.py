@@ -16,8 +16,8 @@ from torchsummary import summary
 import time
 # Hyper Parameters
 LR = 0.02
-batch_size_train = 10
-batch_size_valid = 5
+batch_size_train = 20
+batch_size_valid = 20
 # n_iters = 10000
 NUM_EPOCHS = 20
 
@@ -111,6 +111,9 @@ class CNN_model3(nn.Module):
 def training(model):
     # 把結果寫入檔案
     file = open(r"D:\graduate_project\src\version2\training_detail_model3.txt", "w")
+    # 紀錄最大驗證集準確率
+    max_accuracy = 0
+
     for epoch in range(NUM_EPOCHS):
         epoch_start_time = time.time()
 
@@ -184,6 +187,15 @@ def training(model):
         accuracy_valid = 100 * correct / total
         Total_training_accuracy.append(accuracy_train)
         Total_validation_accuracy.append(accuracy_valid)
+
+        if(accuracy_valid > max_accuracy):
+            max_accuracy = accuracy_valid
+            save_parameters = True
+            if save_parameters:
+                path = 'model_3_3000images.h5'
+                torch.save(model.state_dict(), path)
+                print(f"Save parameters in {path}")
+
         print(f'Epoch [{epoch+1}/{NUM_EPOCHS:d}], Train Loss: {train_loss:.4f}, Train Accuracy: {accuracy_train:.2f}%, Valid Loss: {valid_loss:.4f}, Valid Accuracy: {accuracy_valid:.2f}%')
         file.write(f'Epoch [{epoch+1}/{NUM_EPOCHS:d}], Train Loss: {train_loss:.4f}, Train Accuracy: {accuracy_train:.2f}%, Valid Loss: {valid_loss:.4f}, Valid Accuracy: {accuracy_valid:.2f}%\n')
         # 計算此epoch花的時間
@@ -243,7 +255,7 @@ if __name__ == "__main__":
     # 讀取LA_train_info
     train_df = pd.read_csv("train_info.csv")
     # Load Images from a Folder
-    image_folder_path = r"D:/graduate_project/src/spec_LATrain_audio_shuffle2_NOT_preprocessing"
+    image_folder_path = r"D:/graduate_project/src/spec_LATrain_audio_shuffle234_NOT_preprocessing"
     train_dataloader, valid_dataloader = get_train_test_dataloader(image_folder_path)
     print("Loaded data.")
 
@@ -253,8 +265,9 @@ if __name__ == "__main__":
     # set loss function
     criterion = nn.CrossEntropyLoss()
     # set optimizer
-    optimizer = torch.optim.SGD(model.parameters(), lr=LR)   # optimize all cnn parameters
+    # optimizer = torch.optim.Adam(model.parameters(), lr=LR)   # optimize all cnn parameters
 
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001, betas=(0.9, 0.999))
     # Print the model summary
     summary(model, (3, IMAGE_SIZE, IMAGE_SIZE)) # Input size: (channels, height, width)
 
@@ -278,9 +291,9 @@ if __name__ == "__main__":
     # save the fig of the loss and accuracy
     plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_training_accuracy, Total_validation_accuracy)
 
-    save_parameters = True
+    save_parameters = False
     if save_parameters:
-        path = 'model_3.h5'
+        path = 'model_3_3000images.h5'
         torch.save(model.state_dict(), path)
         print(f"Save parameters in {path}")
     else:
