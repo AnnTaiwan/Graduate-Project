@@ -5,13 +5,13 @@ from observe_audio_function import load_audio, get_mel_spectrogram, plot_mel_spe
 
 
 # Create a directory to store the spectrogram images
-destination_folder = "D:/graduate_project/src/spec_LATrain_audio_shuffle2_NOT_preprocessing"
-source_folder = "D:/graduate_project/src/LATrain_audio_shuffle2"
-
+destination_folder = r"D:\FoR\FoR_for_norm\for-norm\training\spec\spec_real"
+source_folder = r"D:\FoR\FoR_for_norm\for-norm\training\real"
+# Save every 3000 pictures to prevent shutting down
 if __name__ == "__main__":
     os.makedirs(destination_folder, exist_ok=True)
-
-    for filename in os.listdir(source_folder):
+    file_list = os.listdir(source_folder)
+    for filename in file_list[17000//2:17000]:
         filepath2 = os.path.join(source_folder, filename)
         audio, sr = load_audio(filepath2, sr=SAMPLE_RATE)
         audio = audio[:AUDIO_LEN]
@@ -25,7 +25,7 @@ if __name__ == "__main__":
         plt.title("Spectrogram", fontsize=17)
 
         # Save the spectrogram image with a meaningful filename
-        filename = f"spec_{filename[:-5]}.png"  # Use single quotes inside the f-string
+        filename = f"spec_fake_{filename.split('.')[0]}.png"  # Use single quotes inside the f-string
         filepath = os.path.join(destination_folder, filename)
         plt.savefig(filepath)
 

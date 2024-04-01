@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
 import torchvision.transforms as transforms
+from torchvision.datasets import ImageFolder
 
 import numpy as np
 import pandas as pd
@@ -16,12 +17,13 @@ from torchsummary import summary
 import time
 # Hyper Parameters
 LR = 0.02
-batch_size_train = 20
-batch_size_valid = 20
+batch_size_train = 200
+batch_size_valid = 200
 # n_iters = 10000
-NUM_EPOCHS = 30
+NUM_EPOCHS = 20
 
 IMAGE_SIZE = 128
+
 transform = transforms.Compose([
         transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)), # Original Size: (640, 480)
         transforms.ToTensor()
@@ -44,13 +46,30 @@ def remove_margin(image_path):
     return img, cropped_img
 
 # 設定dataset，包含設定transformer、分成70% / 30%，圖片轉換處理完直接存到list，(沒有做成pytorch中的dataset)
-def get_train_test_dataloader(image_folder_path):
-    image_paths = [os.path.join(image_folder_path, filename) for filename in os.listdir(image_folder_path)]
+def get_train_test_dataloader(fake_image_folder_path, real_image_folder_path, path):
+    # Read fake one
+    image_paths = [os.path.join(fake_image_folder_path, filename) for filename in os.listdir(fake_image_folder_path)[:2500]]
+    # Load Labels
+    labels = [1 for _ in os.listdir(fake_image_folder_path)[:2500]]
+
+    # Read real one
+    image_paths = image_paths + [os.path.join(real_image_folder_path, filename) for filename in os.listdir(real_image_folder_path)[:2500]]
+    # Load Labels
+    labels = labels + [0 for _ in os.listdir(real_image_folder_path)[:2500]]
+##########################
+    # Read ASV 
+    train_df = pd.read_csv(r"D:\graduate_project\src\version2\train_info.csv")
+
+    temp_paths = [os.path.join(path, filename) for filename in os.listdir(path)]
 
     # Load Labels
-    # Assuming 'train_df' has columns 'filename' and 'target'
-    # skip the "spec_" and ".png"
-    labels = [train_df[train_df["filename"] == os.path.basename(path)[5:-4]]["target"].values[0] for path in image_paths]
+    labels = labels + [train_df[train_df["filename"] == os.path.basename(path)[5:-4]]["target"].values[0] for path in temp_paths]
+
+    image_paths = image_paths + temp_paths
+    
+    print(f'Fake image: {len(os.listdir(fake_image_folder_path))}\nReal image: {len(os.listdir(real_image_folder_path))}')
+    print("ASV: ", len(temp_paths))
+    print("Total images: ", len(image_paths), len(labels))
     
     # Apply Transformations
     # get the cropped image
@@ -78,9 +97,9 @@ def get_train_test_dataloader(image_folder_path):
     return train_loader, valid_loader
 
 # define CNN model
-class CNN_model5_small(nn.Module):
+class CNN_model5(nn.Module):
     def __init__(self):
-        super(CNN_model5_small, self).__init__()
+        super(CNN_model5, self).__init__()
         self.input_layers = nn.ModuleList([
             nn.Sequential(
                 nn.Conv2d(3, 8, 5, stride=1, padding=2), # kernel = 5*5
@@ -145,7 +164,7 @@ class CNN_model5_small(nn.Module):
 # 訓練模型
 def training(model):
     # 把結果寫入檔案
-    file = open(r"D:\graduate_project\src\version2\training_detail_model5.txt", "w")
+    file = open(r"D:\graduate_project\src\asv_FoR_version\training_detail_model5_add_FoR.txt", "w")
     # 紀錄最大驗證集準確率
     max_accuracy = 0
 
@@ -227,7 +246,7 @@ def training(model):
             max_accuracy = accuracy_valid
             save_parameters = True
             if save_parameters:
-                path = 'model_5_Large.h5'
+                path = 'model_5_asv_FoR_mix.h5'
                 torch.save(model.state_dict(), path)
                 print(f"====Save parameters in {path}====")
                 file.write(f"====Save parameters in {path}====\n")
@@ -256,13 +275,13 @@ def training(model):
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
     plt.legend(loc='lower right')
-    plt.savefig(r"D:\graduate_project\src\version2\ROC5.png") 
+    plt.savefig(r"D:\graduate_project\src\asv_FoR_version\ROC5.png") 
 
     # confusion_matrix
     plt.figure()
     cm = confusion_matrix(all_label, all_pred)
     sns.heatmap(cm, annot=True)
-    plt.savefig(r"D:\graduate_project\src\version2\Confusion_matrix5.png") 
+    plt.savefig(r"D:\graduate_project\src\asv_FoR_version\Confusion_matrix5.png") 
 
 def plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_training_accuracy, Total_validation_accuracy):
     # visualization the loss and accuracy
@@ -273,7 +292,7 @@ def plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_trai
     plt.xlabel('No. of epochs')
     plt.ylabel('Loss')
     plt.legend()
-    plt.savefig(r"D:\graduate_project\src\version2\Loss5.png") 
+    plt.savefig(r"D:\graduate_project\src\asv_FoR_version\Loss5.png") 
 
     plt.figure()
     plt.plot(range(NUM_EPOCHS), Total_training_accuracy, 'r-', label='Training_accuracy')
@@ -282,7 +301,7 @@ def plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_trai
     plt.xlabel('No. of epochs')
     plt.ylabel('Accuracy')
     plt.legend()
-    plt.savefig(r"D:\graduate_project\src\version2\Accuracy5.png") 
+    plt.savefig(r"D:\graduate_project\src\asv_FoR_version\Accuracy5.png") 
 
 
 # Start training
@@ -291,20 +310,20 @@ if __name__ == "__main__":
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Train on {device}.")
     
-    # 讀取LA_train_info
-    train_df = pd.read_csv("train_info.csv")
     # Load Images from a Folder
-    image_folder_path = r"D:/graduate_project/src/spec_LATrain_audio_shuffle234_NOT_preprocessing"
-    train_dataloader, valid_dataloader = get_train_test_dataloader(image_folder_path)
-    print(f"Loaded data from {image_folder_path}.")
-    
-    # set up a model , turn model into cuda
-    model = CNN_model5_small().to(device)
+    fake_image_folder_path = r"D:\FoR\FoR_for_norm\for-norm\training\spec\spec_fake"
+    real_image_folder_path = r"D:\FoR\FoR_for_norm\for-norm\training\spec\spec_real"
+    path = r"D:/graduate_project/src/spec_LATrain_audio_shuffle234_NOT_preprocessing"
+    train_dataloader, valid_dataloader = get_train_test_dataloader(fake_image_folder_path, real_image_folder_path, path)
 
+    print(f"Loaded data from {fake_image_folder_path} and {real_image_folder_path}.")
+    # set up a model , turn model into cuda
+    model = CNN_model5().to(device)
+    # state_dict = torch.load(r"D:\graduate_project\src\version2\model_5_Large.h5")
+    # model.load_state_dict(state_dict)
     # set loss function
     criterion = nn.CrossEntropyLoss()
     # set optimizer
-    # optimizer = torch.optim.Adam(model.parameters(), lr=LR)   # optimize all cnn parameters
 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001, betas=(0.9, 0.999))
     # Print the model summary
@@ -327,16 +346,14 @@ if __name__ == "__main__":
     total_time = end_time - start_time
     print(f"Total training time: {total_time} seconds")
 
-    # # save the fig of the loss and accuracy
-    # plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_training_accuracy, Total_validation_accuracy)
+    # save the fig of the loss and accuracy
+    plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_training_accuracy, Total_validation_accuracy)
 
     # save_parameters = False
     # if save_parameters:
-    #     path = 'model_5_1500images.h5'
+    #     path = 'model_5_asv_FoR.h5'
     #     torch.save(model.state_dict(), path)
     #     print(f"Save parameters in {path}")
     # else:
     #     print("Not save the parameters.")
-    
-
     
