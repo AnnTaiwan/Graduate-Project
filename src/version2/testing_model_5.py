@@ -11,6 +11,8 @@ import os
 from P_model_5 import IMAGE_SIZE, CNN_model5_small
 from SpectrogramDataset import SpectrogramDataset
 
+from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score, classification_report
+
 BATCH_SIZE_TEST = 50
 
 normalize = transforms.Normalize(mean = [0.485, 0.456, 0.406], std = [0.229, 0.224, 0.225])
@@ -43,7 +45,8 @@ def test_model(model, test_dataloader, criterion):
     test_loss = 0.0
     correct = 0
     total = 0
-
+    y_true = np.array([])
+    y_pred = np.array([])
     with torch.no_grad():  # 不需要計算梯度
         for _, (image, label) in enumerate(test_dataloader):
             image, label = image.to(device), label.to(device)
@@ -54,14 +57,36 @@ def test_model(model, test_dataloader, criterion):
             probs = torch.nn.functional.softmax(output, dim=1)
             _, predicted = torch.max(probs, 1)
 
+            # 將 CUDA 張量轉換為 NumPy 陣列
+            y_pred = np.append(y_pred, predicted.cpu().numpy())
+            y_true = np.append(y_true, label.cpu().numpy())
+
             total += label.size(0)
-            correct += (predicted == label).sum().item()
+            # correct += (predicted == label).sum().item()
 
     avg_loss = test_loss / total
-    accuracy = 100 * correct / total
+    # accuracy = 100 * correct / total
 
-    print(f"Test Loss: {avg_loss:.4f}, Accuracy: {accuracy:.2f}%")
+    print(f"Test Loss: {avg_loss:.4f}")
 
+    # Calculate precision
+    precision = precision_score(y_true, y_pred)
+
+    # Calculate recall
+    recall = recall_score(y_true, y_pred)
+
+    # Calculate F1-score
+    f1 = f1_score(y_true, y_pred)
+
+    # Calculate accuracy
+    accuracy = accuracy_score(y_true, y_pred)
+
+    print(f"Precision: {precision * 100:.2f}")
+    print(f"Recall: {recall * 100:.2f}")
+    print(f"F1-score: {f1 * 100:.2f}")
+    print(f"Accuracy: {accuracy * 100:.2f}%")
+
+    print(classification_report(y_true, y_pred))
 
 if __name__ == "__main__":
     # 決定要在CPU or GPU
@@ -74,7 +99,7 @@ if __name__ == "__main__":
     # Move model to device
     model.to(device)
     # state_dict = torch.load("model_5.h5")
-    state_dict = torch.load(r"D:\graduate_project\src\asv_FoR_version\model_5_asv_FoR_mix.h5")
+    state_dict = torch.load(r"D:\graduate_project\src\version2\model_5_Large.h5")
     model.load_state_dict(state_dict)
     # set loss function
     criterion = nn.CrossEntropyLoss()

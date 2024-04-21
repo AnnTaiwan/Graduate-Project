@@ -90,7 +90,7 @@ class CNN_model5_small(nn.Module):
             )
         ])
         
-        conv_filters = [12,16,12,8]
+        conv_filters = [12,16,12,8] # [12,16,12,8]
         self.conv_layers = nn.ModuleList([
             nn.Sequential(
                 nn.Conv2d(8, 12, 1),

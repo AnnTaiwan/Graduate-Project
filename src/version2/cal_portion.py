@@ -1,7 +1,7 @@
 import pandas as pd
 import os
-df = pd.read_csv(r"D:\graduate_project\src\version2\train_info.csv")
-path = r"D:\graduate_project\src\spec_LATrain_audio_shuffle234_NOT_preprocessing"
+df = pd.read_csv(r"D:\graduate_project\src\version2\eval_info.csv")
+path = r"D:/graduate_project/src/spec_LAEval_audio_shuffle3_NOT_preprocessing"
 list_image_name = [filename[5:-4] for filename in os.listdir(path)]
 spoof = 0
 bonafide = 0
