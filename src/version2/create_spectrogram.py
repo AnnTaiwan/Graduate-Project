@@ -5,8 +5,8 @@ from observe_audio_function import load_audio, get_mel_spectrogram, plot_mel_spe
 
 
 # Create a directory to store the spectrogram images
-destination_folder = "D:/graduate_project/src/spec_LATrain_audio_shuffle2_NOT_preprocessing"
-source_folder = "D:/graduate_project/src/LATrain_audio_shuffle2"
+destination_folder = "D:/graduate_project/src/spec_LATrain_audio_shuffle4_NOT_preprocessing"
+source_folder = "D:/graduate_project/src/LATrain_audio_shuffle4"
 
 if __name__ == "__main__":
     os.makedirs(destination_folder, exist_ok=True)

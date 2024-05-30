@@ -1,0 +1,52 @@
+====Save parameters in model_5_asv_FoR_mix.h5====
+Epoch [1/20], Train Loss: 0.6997, Train Accuracy: 60.43%, Valid Loss: 0.6796, Valid Accuracy: 57.08%
+Epoch [1/20] took 12.668621301651001 seconds.
+====Save parameters in model_5_asv_FoR_mix.h5====
+Epoch [2/20], Train Loss: 0.5107, Train Accuracy: 74.95%, Valid Loss: 0.6963, Valid Accuracy: 59.38%
+Epoch [2/20] took 13.015780687332153 seconds.
+====Save parameters in model_5_asv_FoR_mix.h5====
+Epoch [3/20], Train Loss: 0.4468, Train Accuracy: 79.36%, Valid Loss: 0.4630, Valid Accuracy: 78.08%
+Epoch [3/20] took 12.724320411682129 seconds.
+====Save parameters in model_5_asv_FoR_mix.h5====
+Epoch [4/20], Train Loss: 0.4096, Train Accuracy: 81.38%, Valid Loss: 0.4139, Valid Accuracy: 79.46%
+Epoch [4/20] took 12.922082662582397 seconds.
+====Save parameters in model_5_asv_FoR_mix.h5====
+Epoch [5/20], Train Loss: 0.3700, Train Accuracy: 83.27%, Valid Loss: 0.3732, Valid Accuracy: 83.21%
+Epoch [5/20] took 12.646432399749756 seconds.
+Epoch [6/20], Train Loss: 0.3433, Train Accuracy: 84.48%, Valid Loss: 1.1265, Valid Accuracy: 58.67%
+Epoch [6/20] took 12.867573261260986 seconds.
+====Save parameters in model_5_asv_FoR_mix.h5====
+Epoch [7/20], Train Loss: 0.3125, Train Accuracy: 86.55%, Valid Loss: 0.3112, Valid Accuracy: 85.42%
+Epoch [7/20] took 12.513062715530396 seconds.
+====Save parameters in model_5_asv_FoR_mix.h5====
+Epoch [8/20], Train Loss: 0.2818, Train Accuracy: 88.12%, Valid Loss: 0.3125, Valid Accuracy: 85.62%
+Epoch [8/20] took 12.65555214881897 seconds.
+Epoch [9/20], Train Loss: 0.2598, Train Accuracy: 88.66%, Valid Loss: 0.5501, Valid Accuracy: 76.71%
+Epoch [9/20] took 12.556177377700806 seconds.
+====Save parameters in model_5_asv_FoR_mix.h5====
+Epoch [10/20], Train Loss: 0.2391, Train Accuracy: 89.75%, Valid Loss: 0.2620, Valid Accuracy: 88.75%
+Epoch [10/20] took 12.807204723358154 seconds.
+Epoch [11/20], Train Loss: 0.2209, Train Accuracy: 91.04%, Valid Loss: 0.2734, Valid Accuracy: 87.33%
+Epoch [11/20] took 13.615840435028076 seconds.
+Epoch [12/20], Train Loss: 0.1930, Train Accuracy: 92.34%, Valid Loss: 0.2671, Valid Accuracy: 88.71%
+Epoch [12/20] took 12.977038621902466 seconds.
+Epoch [13/20], Train Loss: 0.1716, Train Accuracy: 93.45%, Valid Loss: 0.3044, Valid Accuracy: 86.88%
+Epoch [13/20] took 12.831165552139282 seconds.
+Epoch [14/20], Train Loss: 0.1607, Train Accuracy: 93.80%, Valid Loss: 0.4100, Valid Accuracy: 83.79%
+Epoch [14/20] took 12.865845203399658 seconds.
+====Save parameters in model_5_asv_FoR_mix.h5====
+Epoch [15/20], Train Loss: 0.1696, Train Accuracy: 93.32%, Valid Loss: 0.2336, Valid Accuracy: 90.25%
+Epoch [15/20] took 12.976684331893921 seconds.
+Epoch [16/20], Train Loss: 0.1417, Train Accuracy: 94.36%, Valid Loss: 0.2793, Valid Accuracy: 88.71%
+Epoch [16/20] took 13.196746110916138 seconds.
+Epoch [17/20], Train Loss: 0.1286, Train Accuracy: 95.27%, Valid Loss: 0.5059, Valid Accuracy: 79.50%
+Epoch [17/20] took 13.07469654083252 seconds.
+Epoch [18/20], Train Loss: 0.1136, Train Accuracy: 95.62%, Valid Loss: 0.4500, Valid Accuracy: 81.92%
+Epoch [18/20] took 13.092206001281738 seconds.
+====Save parameters in model_5_asv_FoR_mix.h5====
+Epoch [19/20], Train Loss: 0.0964, Train Accuracy: 96.50%, Valid Loss: 0.1796, Valid Accuracy: 93.17%
+Epoch [19/20] took 13.508841514587402 seconds.
+Epoch [20/20], Train Loss: 0.0872, Train Accuracy: 96.62%, Valid Loss: 0.2363, Valid Accuracy: 90.12%
+Epoch [20/20] took 12.621933937072754 seconds.
+
+Max accuracy: 93.16666666666667

@@ -327,8 +327,8 @@ if __name__ == "__main__":
     total_time = end_time - start_time
     print(f"Total training time: {total_time} seconds")
 
-    # # save the fig of the loss and accuracy
-    # plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_training_accuracy, Total_validation_accuracy)
+    # save the fig of the loss and accuracy
+    plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_training_accuracy, Total_validation_accuracy)
 
     # save_parameters = False
     # if save_parameters:
