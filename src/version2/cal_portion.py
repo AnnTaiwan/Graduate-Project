@@ -1,3 +1,6 @@
+'''
+Calculate the portion of real/fake in one folder.
+'''
 import pandas as pd
 import os
 df = pd.read_csv(r"D:\graduate_project\src\version2\eval_info.csv")

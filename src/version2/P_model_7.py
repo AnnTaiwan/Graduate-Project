@@ -1,3 +1,8 @@
+'''
+Compare to P-model_6,
+deleting dropout function
+change image size into 256*256
+'''
 from PIL import Image
 import torch
 import torch.nn as nn
@@ -19,9 +24,9 @@ LR = 0.02
 batch_size_train = 20
 batch_size_valid = 20
 # n_iters = 10000
-NUM_EPOCHS = 30
+NUM_EPOCHS = 25
 
-IMAGE_SIZE = 128
+IMAGE_SIZE = 256
 transform = transforms.Compose([
         transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)), # Original Size: (640, 480)
         transforms.ToTensor()
@@ -55,7 +60,7 @@ def get_train_test_dataloader(image_folder_path):
     # Apply Transformations
     # get the cropped image
     # Convert the NumPy array back to an image
-    images = [transform(Image.fromarray(remove_margin(path)[1].astype('uint8')).convert('RGB')) for path in image_paths]
+    images = [transform(Image.fromarray(remove_margin(path)[1].astype('uint8')).convert('RGB')) / 255.0 for path in image_paths]
     # images = [transform(Image.open(path).convert('RGB')) for path in image_paths]
 
     # Create TensorDataset
@@ -78,9 +83,9 @@ def get_train_test_dataloader(image_folder_path):
     return train_loader, valid_loader
 
 # define CNN model
-class CNN_model6(nn.Module):
+class CNN_model7(nn.Module):
     def __init__(self):
-        super(CNN_model6, self).__init__()
+        super(CNN_model7, self).__init__()
         self.input_layers = nn.ModuleList([
             nn.Sequential(
                 nn.Conv2d(3, 8, 5, stride=1), # kernel = 5*5
@@ -122,13 +127,9 @@ class CNN_model6(nn.Module):
         # final layer output above is (8, 108, 108) 93312
         self.class_layers = nn.ModuleList([
             nn.Sequential(
-                nn.Dropout(0.2),
                 # Flatten layers
-                nn.Linear(8*2*2, 2),       
-                # nn.ReLU(),
-                # nn.BatchNorm1d(2),  # 添加批次正規化層
-                # nn.Dropout(0.2),
-                # nn.Linear(2, 2) 
+                nn.Linear(8*6*6, 10),   
+                nn.Linear(10, 2)     
             )
         ])
         
@@ -137,7 +138,7 @@ class CNN_model6(nn.Module):
             x = layer(x)
         for layer in self.conv_layers:
             x = layer(x)
-        x = x.view(-1, 8*2*2)
+        x = x.view(-1, 8*6*6)
         for layer in self.class_layers:
             x = layer(x)
         return x
@@ -145,7 +146,7 @@ class CNN_model6(nn.Module):
 # 訓練模型
 def training(model):
     # 把結果寫入檔案
-    file = open(r"D:\graduate_project\src\version2\training_detail_model6.txt", "w")
+    file = open(r"D:\graduate_project\src\version2\training_detail_model7.txt", "w")
     # 紀錄最大驗證集準確率
     max_accuracy = 0
 
@@ -227,7 +228,7 @@ def training(model):
             max_accuracy = accuracy_valid
             save_parameters = True
             if save_parameters:
-                path = 'model_6.h5'
+                path = 'model_7.pth'
                 torch.save(model.state_dict(), path)
                 print(f"====Save parameters in {path}====")
                 file.write(f"====Save parameters in {path}====\n")
@@ -256,13 +257,13 @@ def training(model):
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
     plt.legend(loc='lower right')
-    plt.savefig(r"D:\graduate_project\src\version2\ROC6.png") 
+    plt.savefig(r"D:\graduate_project\src\version2\ROC7.png") 
 
     # confusion_matrix
     plt.figure()
     cm = confusion_matrix(all_label, all_pred)
     sns.heatmap(cm, annot=True)
-    plt.savefig(r"D:\graduate_project\src\version2\Confusion_matrix6.png") 
+    plt.savefig(r"D:\graduate_project\src\version2\Confusion_matrix7.png") 
 
 def plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_training_accuracy, Total_validation_accuracy):
     # visualization the loss and accuracy
@@ -273,7 +274,7 @@ def plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_trai
     plt.xlabel('No. of epochs')
     plt.ylabel('Loss')
     plt.legend()
-    plt.savefig(r"D:\graduate_project\src\version2\Loss6.png") 
+    plt.savefig(r"D:\graduate_project\src\version2\Loss7.png") 
 
     plt.figure()
     plt.plot(range(NUM_EPOCHS), Total_training_accuracy, 'r-', label='Training_accuracy')
@@ -282,7 +283,7 @@ def plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_trai
     plt.xlabel('No. of epochs')
     plt.ylabel('Accuracy')
     plt.legend()
-    plt.savefig(r"D:\graduate_project\src\version2\Accuracy6.png") 
+    plt.savefig(r"D:\graduate_project\src\version2\Accuracy7.png") 
 
 
 # Start training
@@ -294,12 +295,12 @@ if __name__ == "__main__":
     # 讀取LA_train_info
     train_df = pd.read_csv("train_info.csv")
     # Load Images from a Folder
-    image_folder_path = r"D:/graduate_project/src/spec_LATrain_audio_shuffle234_NOT_preprocessing"
+    image_folder_path = r"D:/graduate_project/src/spec_LATrain_audio_shuffle23_NOT_preprocessing"
     train_dataloader, valid_dataloader = get_train_test_dataloader(image_folder_path)
     print(f"Loaded data from {image_folder_path}.")
     
     # set up a model , turn model into cuda
-    model = CNN_model6().to(device)
+    model = CNN_model7().to(device)
 
     # set loss function
     criterion = nn.CrossEntropyLoss()
