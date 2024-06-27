@@ -30,8 +30,10 @@ def get_test_dataloader(data_dir):
     test_image_paths = [os.path.join(data_dir, filename) for filename in os.listdir(data_dir)]
     # Load Labels
     # Assuming 'eval_df' has columns 'filename' and 'target'
-    # skip the "spec_" and ".png"
+    # used for chinese data
     test_labels = [dev_df[dev_df["file_name"] == os.path.basename(path)]["label"].values[0] for path in test_image_paths]
+    # used for asvspoof2019
+    # test_labels = [dev_df[dev_df["filename"] == os.path.basename(path)[5:-4]]["target"].values[0] for path in test_image_paths]
     
     # Dataset parameters: (self, all filenames, all labels, transform)
     test_dataloader = torch.utils.data.DataLoader(SpectrogramDataset(test_image_paths, test_labels, test_transformer),
@@ -52,6 +54,7 @@ def test_model(model, test_dataloader, criterion):
             loss = criterion(output, label)
             test_loss += loss.item() * image.size(0)
 
+            # print(output)
             probs = torch.nn.functional.softmax(output, dim=1)
             _, predicted = torch.max(probs, 1)
 
@@ -90,18 +93,18 @@ if __name__ == "__main__":
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Test on {device}.")
     # 讀取LA_dev_info
-    dev_df = pd.read_csv("chinese_audio_info.csv")
+    dev_df = pd.read_csv(r"D:\graduate_project\src\train_for_CH_data\chinese_audio_info.csv")
     # Load the model and weights
     model = CNN_model8()
     # Move model to device
     model.to(device)
-    state_dict = torch.load(r"D:\graduate_project\src\train_for_CH_data\model_CH_8.pth")
+    state_dict = torch.load(r"model_CH_8.pth")
     model.load_state_dict(state_dict)
     # set loss function
     criterion = nn.CrossEntropyLoss()
 
     # Load Images from a Folder
-    image_folder_path = r"C:\Users\User\Desktop\temp_audio"
+    image_folder_path = r"D:\clone_audio\chinese_audio_spec\test_dataset_Stest_Bpart2"
     # Load images into test_dataloader
     test_dataloader = get_test_dataloader(image_folder_path)
     print(f"Loaded test data from {image_folder_path}.")

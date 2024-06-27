@@ -274,7 +274,9 @@ def training(model):
             max_accuracy = accuracy_valid
             save_parameters = True
             if save_parameters:
-                path = 'model_CH_8.pth'
+                # path = 'model_CH_8.pth'
+                path = 'model_CH_8_2.pth'
+
                 torch.save(model.state_dict(), path)
                 print(f"====Save parameters in {path}====")
                 file.write(f"====Save parameters in {path}====\n")
@@ -338,8 +340,8 @@ if __name__ == "__main__":
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Train on {device}.")
     # Load Images from a Folder
-    bonafide_dir = r"D:\clone_audio\chinese_audio_spec\bonafide_spec"
-    spoof_dir = r"D:\clone_audio\chinese_audio_spec\spoof_spec"
+    bonafide_dir = r"D:\clone_audio\chinese_audio_spec\bonafide_spec_base\part_1"
+    spoof_dir = r"D:\clone_audio\chinese_audio_spec\spoof_spec_total"
     train_dataloader, valid_dataloader = get_train_test_dataloader(bonafide_dir, spoof_dir)
     print(f"Loaded data from {bonafide_dir}\nand {spoof_dir}.")
     
