@@ -68,7 +68,7 @@ def plot_mfcc(mfcc, sr=SAMPLE_RATE):  # Plot the mel-spectrogram
     return fig
 
 def get_chroma(audio, sr=SAMPLE_RATE):
-    chroma = librosa.feature.chroma_stft(y=audio, sr=sr, n_chroma=20, n_fft=N_FFT, hop_length=HOP_LEN)
+    chroma = librosa.feature.chroma_stft(y=audio, sr=sr, n_chroma=12, n_fft=N_FFT, hop_length=HOP_LEN)
     return chroma
 
 def plot_chroma(chroma, sr=SAMPLE_RATE):  # Plot the mel-spectrogram
