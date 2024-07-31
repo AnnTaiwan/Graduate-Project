@@ -59,6 +59,22 @@ def plot_mel_spectrogram(spec, sr=SAMPLE_RATE):  # Plot the mel-spectrogram
     fig = librosa.display.specshow(spec, x_axis='time', y_axis='mel', sr=sr, hop_length=HOP_LEN, cmap='viridis')
     return fig
 
+def get_mfcc(audio, sr=SAMPLE_RATE):
+    mfcc = librosa.feature.mfcc(y=audio, sr=sr, n_mfcc=13, fmax=FMAX, n_mels=N_MELS, hop_length=HOP_LEN, n_fft=N_FFT)
+    return mfcc
+
+def plot_mfcc(mfcc, sr=SAMPLE_RATE):  # Plot the mel-spectrogram
+    fig = librosa.display.specshow(mfcc, x_axis='time', sr=sr, hop_length=HOP_LEN, cmap='viridis')
+    return fig
+
+def get_chroma(audio, sr=SAMPLE_RATE):
+    chroma = librosa.feature.chroma_stft(y=audio, sr=sr, n_chroma=20, n_fft=N_FFT, hop_length=HOP_LEN)
+    return chroma
+
+def plot_chroma(chroma, sr=SAMPLE_RATE):  # Plot the mel-spectrogram
+    fig = librosa.display.specshow(chroma, x_axis='time', y_axis='chroma', sr=sr, hop_length=HOP_LEN, cmap='viridis')
+    return fig
+
 def plot_all(audio): 
     print('# Listen')
     listen_audio(audio)
