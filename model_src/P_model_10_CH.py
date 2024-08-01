@@ -64,7 +64,21 @@ def generate_dataset(audio_folder_path_bonafide, audio_folder_path_spoof, batch_
 
     # Convert list of spectrograms to a 4D tensor (batch_size, channels, height, width)
     list_spec = np.array(list_spec)  # Convert list to a numpy array
-    list_spec = np.expand_dims(list_spec, axis=1)  # Add a channel dimension, assuming channel first format (batch_size, 1, height, width)
+    if train_or_valid:  # Do normalization on train data
+        mean = np.mean(list_spec, axis=0)
+        std = np.std(list_spec, axis=0)
+        list_spec = (list_spec - mean) / std
+        # Save the mean and std
+        np.save('training_result_mel_spec_data_directly/mean.npy', mean)
+        np.save('training_result_mel_spec_data_directly/std.npy', std)
+
+    else:
+        # Load the mean and std for validation
+        mean = np.load('training_result_mel_spec_data_directly/mean.npy')
+        std = np.load('training_result_mel_spec_data_directly/std.npy')
+        list_spec = (list_spec - mean) / std
+
+    list_spec = np.expand_dims(list_spec, axis=1)  # Add a channel dimension after first axis, assuming channel first format (batch_size, 1, height, width)
     # list_spec[0].shape is (1, 128, 216)
     # print(list_spec[0].shape)
     # Create TensorDataset
@@ -138,7 +152,7 @@ class CNN_model10(nn.Module):
 # 訓練模型
 def training(model):
     # 把結果寫入檔案
-    file = open("training_result_mel_spec_data_directly/training_detail_model10_CH.txt", "w")
+    file = open("training_result_mel_spec_data_directly/training_detail_model10_CH_ver2_normalize.txt", "w")
     # 紀錄最大驗證集準確率
     max_accuracy = 0
 
@@ -220,7 +234,7 @@ def training(model):
             max_accuracy = accuracy_valid
             save_parameters = True
             if save_parameters:
-                path = 'training_result_mel_spec_data_directly/model_10_CH_ver1.pth'
+                path = 'training_result_mel_spec_data_directly/model_10_CH_ver2_normalize.pth'
                 torch.save(model.state_dict(), path)
                 print(f"====Save parameters in {path}====")
                 file.write(f"====Save parameters in {path}====\n")
@@ -249,13 +263,13 @@ def training(model):
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
     plt.legend(loc='lower right')
-    plt.savefig("training_result_mel_spec_data_directly/CH_ROC10.png") 
+    plt.savefig("training_result_mel_spec_data_directly/CH_ROC10_ver2_normalize.png") 
 
     # confusion_matrix
     plt.figure()
     cm = confusion_matrix(all_label, all_pred)
     sns.heatmap(cm, annot=True)
-    plt.savefig("training_result_mel_spec_data_directly/CH_Confusion_matrix10.png") 
+    plt.savefig("training_result_mel_spec_data_directly/CH_Confusion_matrix10_ver2_normalize.png") 
 
 def plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_training_accuracy, Total_validation_accuracy):
     # visualization the loss and accuracy
@@ -266,7 +280,7 @@ def plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_trai
     plt.xlabel('No. of epochs')
     plt.ylabel('Loss')
     plt.legend()
-    plt.savefig("training_result_mel_spec_data_directly/CH_Loss10png") 
+    plt.savefig("training_result_mel_spec_data_directly/CH_Loss10_ver2_normalize.png") 
 
     plt.figure()
     plt.plot(range(NUM_EPOCHS), Total_training_accuracy, 'r-', label='Training_accuracy')
@@ -275,7 +289,7 @@ def plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_trai
     plt.xlabel('No. of epochs')
     plt.ylabel('Accuracy')
     plt.legend()
-    plt.savefig("training_result_mel_spec_data_directly/CH_Accuracy10.png") 
+    plt.savefig("training_result_mel_spec_data_directly/CH_Accuracy10_ver2_normalize.png") 
 
 
 # Start training
@@ -283,7 +297,7 @@ if __name__ == "__main__":
     # 決定要在CPU or GPU
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Train on {device}.")
-    
+
     # set up a model , turn model into cuda
     model = CNN_model10().to(device)
     '''
