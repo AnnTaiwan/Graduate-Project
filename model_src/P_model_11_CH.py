@@ -1,6 +1,6 @@
 '''
 1. Use crop_with_points to remove margin
-2. input mel_spec image ,and use RGB pixel value as input feature
+2. input mel_spec, mfcc, chroma image(totally 9 channels) ,and use RGB pixel value as input feature
 '''
 from PIL import Image
 import torch
@@ -8,6 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import  transforms
 
+import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -20,7 +21,7 @@ import time
 LR = 0.001
 batch_size_train = 50
 batch_size_valid = 50
-NUM_EPOCHS = 25
+NUM_EPOCHS = 20
 
 IMAGE_SIZE = 128
 transform = transforms.Compose([
@@ -53,15 +54,28 @@ def crop_with_points(image_path):
     return cropped_img
 
 # when training, do data augmentation on spoof data
-def generate_dataset(image_folder_path, batch_size=20, train_or_valid=True):
-    image_paths = [os.path.join(image_folder_path, filename) for filename in os.listdir(image_folder_path)]
+def generate_dataset(df, batch_size=20, train_or_valid=True):
+    images = []
+    labels = []
 
-    # Load Labels
-    # spoof is 1, bonafide is 0, see teh first character
-    labels = [1 if filename[0] == "s" else 0 for filename in os.listdir(image_folder_path)]
-    
-    # Apply Transformations
-    images = [transform(crop_with_points(path).convert('RGB'))  for path in image_paths]
+    # Filter DataFrame for training or validation set
+    subset_df = df[df["type"] == ("train" if train_or_valid else "val")]
+
+    for _, row in subset_df.iterrows():
+        # get each path
+        mel_spec_path = row["Mel_spec_path"]
+        mfcc_path = row["MFCC_path"]
+        chroma_path = row["Chroma_path"]
+        # get each image
+        mel_spec_image = transform(crop_with_points(mel_spec_path).convert('RGB'))
+        mfcc_image = transform(crop_with_points(mfcc_path).convert('RGB'))
+        chroma_image = transform(crop_with_points(chroma_path).convert('RGB'))
+
+        # Stack images along the channel dimension
+        stacked_image = torch.cat([mel_spec_image, mfcc_image, chroma_image],  dim=0) 
+        # print(np.array(stacked_image).shape) # (9, 128, 128)
+        images.append(stacked_image)                     
+        labels.append(row["Label"])
     
     # Create TensorDataset
     dataset = torch.utils.data.TensorDataset(torch.stack(images), torch.tensor(labels, dtype=torch.long))
@@ -72,29 +86,29 @@ def generate_dataset(image_folder_path, batch_size=20, train_or_valid=True):
     return data_loader
     
 # define CNN model
-class CNN_model9(nn.Module):
+class CNN_model11(nn.Module):
     def __init__(self):
-        super(CNN_model9, self).__init__()
+        super(CNN_model11, self).__init__()
         self.input_layers = nn.ModuleList([
             nn.Sequential(
-                nn.Conv2d(3, 8, 5, stride=1), # kernel = 5*5
+                nn.Conv2d(9, 12, 5, stride=1), # kernel = 5*5
                 nn.ReLU(),
-                nn.BatchNorm2d(8), # 添加批次正規化層，對同一channel作正規化
+                nn.BatchNorm2d(12), # 添加批次正規化層，對同一channel作正規化
                 nn.MaxPool2d(2, stride=2) 
             )
         ])
         
-        conv_filters = [12,30,16,8] 
+        conv_filters = [15,30,16,8] 
         self.conv_layers = nn.ModuleList([
             nn.Sequential(
-                nn.Conv2d(8, 12, 1),
+                nn.Conv2d(12, 15, 1),
                 nn.ReLU(),
-                nn.BatchNorm2d(12)
+                nn.BatchNorm2d(15)
             ),
             nn.Sequential(
-                nn.Conv2d(12, 12, 3),
+                nn.Conv2d(15, 15, 3),
                 nn.ReLU(),
-                nn.BatchNorm2d(12)
+                nn.BatchNorm2d(15)
             ),
             nn.MaxPool2d(2, stride=2)
         ])
@@ -113,11 +127,11 @@ class CNN_model9(nn.Module):
             self.conv_layers.append(
                 nn.MaxPool2d(2, stride=2)
             )
-        # final layer output above is (8, 108, 108) 93312
+        
         self.class_layers = nn.ModuleList([
             nn.Sequential(
                 # Flatten layers
-                nn.Linear(8*2*2, 2),       
+                nn.Linear(8*2*2, 2)     
             )
         ])
         
@@ -134,7 +148,7 @@ class CNN_model9(nn.Module):
 # 訓練模型
 def training(model):
     # 把結果寫入檔案
-    file = open("training_result/training_detail_model9_CH.txt", "w")
+    file = open("training_result_three_features_image/training_detail_model11_CH.txt", "w")
     # 紀錄最大驗證集準確率
     max_accuracy = 0
 
@@ -216,7 +230,7 @@ def training(model):
             max_accuracy = accuracy_valid
             save_parameters = True
             if save_parameters:
-                path = 'training_result/model_9_CH_ver1.pth'
+                path = 'training_result_three_features_image/model_11_CH_ver1.pth'
                 torch.save(model.state_dict(), path)
                 print(f"====Save parameters in {path}====")
                 file.write(f"====Save parameters in {path}====\n")
@@ -245,13 +259,13 @@ def training(model):
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
     plt.legend(loc='lower right')
-    plt.savefig("training_result/CH_ROC9.png") 
+    plt.savefig("training_result_three_features_image/CH_ROC11.png") 
 
     # confusion_matrix
     plt.figure()
     cm = confusion_matrix(all_label, all_pred)
     sns.heatmap(cm, annot=True)
-    plt.savefig("training_result/CH_Confusion_matrix9.png") 
+    plt.savefig("training_result_three_features_image/CH_Confusion_matrix11.png") 
 
 def plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_training_accuracy, Total_validation_accuracy):
     # visualization the loss and accuracy
@@ -262,7 +276,7 @@ def plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_trai
     plt.xlabel('No. of epochs')
     plt.ylabel('Loss')
     plt.legend()
-    plt.savefig("training_result/CH_Loss9.png") 
+    plt.savefig("training_result_three_features_image/CH_Loss11.png") 
 
     plt.figure()
     plt.plot(range(NUM_EPOCHS), Total_training_accuracy, 'r-', label='Training_accuracy')
@@ -271,31 +285,25 @@ def plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_trai
     plt.xlabel('No. of epochs')
     plt.ylabel('Accuracy')
     plt.legend()
-    plt.savefig("training_result/CH_Accuracy9.png") 
+    plt.savefig("training_result_three_features_image/CH_Accuracy11.png") 
 
 
 # Start training
 if __name__ == "__main__":
-    # 決定要在CPU or GPU
+    # CPU or GPU
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Train on {device}.")
-    
+    # load the info csv
+    info_path = "chinese_audio_dataset_ver3_info.csv"
+    info_df = pd.read_csv(info_path)
     # set up a model , turn model into cuda
-    model = CNN_model9().to(device)
-    # load P_model7 pth
-    # pth_path = '/workspace/model_zoo/model_API2_model7/float/model_7.pth'
-    # state_dict = torch.load(pth_path)
-    # model.load_state_dict(state_dict)
-    # print(f"Load model pth from {pth_path}")
-    # Load Images from a Folder
-    image_folder_path = r"D:\clone_audio\chinese_audio_dataset_ver3\train_mel_spec"
-    print(f"Loading train data from {image_folder_path}...")
-    train_dataloader = generate_dataset(image_folder_path, batch_size = batch_size_train, train_or_valid = True)
+    model = CNN_model11().to(device)
     
-    # Load Images from a Folder
-    image_folder_path = r"D:\clone_audio\chinese_audio_dataset_ver3\val_mel_spec"
-    print(f"Loading validation data from {image_folder_path}...")
-    valid_dataloader = generate_dataset(image_folder_path, batch_size = batch_size_valid, train_or_valid = False)
+    print(f"Loading train data from {info_path}...")
+    train_dataloader = generate_dataset(info_df, batch_size = batch_size_train, train_or_valid = True)
+    
+    print(f"Loading validation data from {info_path}...")
+    valid_dataloader = generate_dataset(info_df, batch_size = batch_size_valid, train_or_valid = False)
     print(f"Finish loading all the data.")
     
     
@@ -305,7 +313,7 @@ if __name__ == "__main__":
     # set optimizer
     optimizer = torch.optim.Adam(model.parameters(), lr=LR, betas=(0.9, 0.999))
     # Print the model summary
-    summary(model, (3, IMAGE_SIZE, IMAGE_SIZE)) # Input size: (channels, height, width)
+    summary(model, (9, IMAGE_SIZE, IMAGE_SIZE)) # Input size: (channels, height, width)
     
     # 初始時間
     start_time = time.time()
