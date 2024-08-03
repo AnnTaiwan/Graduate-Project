@@ -7,13 +7,20 @@ Note: https://hackmd.io/D5vDB1KiQM60tRxpeXZ9bg?both#731-%E8%A8%93%E7%B7%B4%E6%A8
 
 ### 2. model_10_CH
 **Directly use mel-spectrogram data(128,216) as features.**
-* input tensor : (batch size, 1*channels*, 128, 216)
-
+* input tensor : (batch size, 1*channels*, 128, 216)  
+* Do normalization on each position across all batches
 ### 3. model_11_CH
 **Use three features images(mel-spectrogram, mfcc, chroma) as RGB pixel features.**
 * input tensor : (batch size, 9*channels*, 128, 128)
+
+### 4. model_12_CH
+**Use three features directly(mel-spectrogram, mfcc, chroma) to act as input of model12.**
+* input tensor : (batch size, 3*channels*, 128, 216)
+* 有用到插值法補齊mfcc跟chroma不夠的值
+* Do normalization on each position of each channel across all batches
 
 ### Testing code:
 * `testing_model9_CH.py` is associated with `SpectrogramDataset.py`.
 * `testing_model10_CH.py` is associated with `AudioDataset.py`.
 * `testing_model11_CH.py` is associated with `FeatureDataset.py`.
+* `testing_model12_CH.py` is associated with `AudioDataset_ver2.py`.

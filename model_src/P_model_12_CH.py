@@ -1,19 +1,14 @@
 '''
-Directly input mel_spec data into model
+Directly input mel_spec, mfcc, chroma data into model
 '''
-from PIL import Image
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torchvision import datasets, transforms
-
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import confusion_matrix, roc_auc_score, roc_curve
-from observe_audio_function_ver3 import SAMPLE_RATE, AUDIO_LEN, get_mel_spectrogram, load_audio
-import random
+from observe_audio_function_ver3 import SAMPLE_RATE, AUDIO_LEN, get_mel_spectrogram, load_audio, get_mfcc, get_chroma, N_MELS, SPEC_WIDTH
 import os
 from torchsummary import summary
 import time
@@ -21,85 +16,88 @@ import time
 LR = 0.001
 batch_size_train = 50
 batch_size_valid = 50
-NUM_EPOCHS = 15
+NUM_EPOCHS = 25
 
-# when training, do data augmentation on spoof data
-def generate_dataset(audio_folder_path_bonafide, audio_folder_path_spoof, batch_size=20, train_or_valid = True):
-    # load bonafide audio
-    audio_paths = [os.path.join(audio_folder_path_bonafide, filename) for filename in os.listdir(audio_folder_path_bonafide)]
-
-    # Load Labels
-    # spoof is 1, bonafide is 0, see teh first character
-    labels = [0 for _ in range(len(os.listdir(audio_folder_path_bonafide)))]
-    
-    # Load audio spec information(128, 216)
-    list_spec = [] # record the spec data
+def get_features(target_size, audio_paths):
+    '''
+    Description:
+        get three features: mel_spec, mfcc, chroma
+    Parameter:
+        target_size: two-dimensional size, expected feature shape
+        audio_paths: expected audio path
+    Return:
+        a list contain a torch.tensor whose shape is (3, target_size[0], target_size[1]).
+    '''
+    list_features = []
     for audiopath in audio_paths:
         audio, _ = load_audio(audiopath, SAMPLE_RATE)
-        # padding 0
+        # Padding 0
         if len(audio) < AUDIO_LEN:
-            audio = np.pad(audio, (0, AUDIO_LEN - len(audio)), 'constant') # padding zero
+            audio = np.pad(audio, (0, AUDIO_LEN - len(audio)), 'constant')  # Padding zero
         else:
             audio = audio[:AUDIO_LEN]
-        spec = get_mel_spectrogram(audio)
-        list_spec.append(spec)
 
-    # load spoof audio
-    audio_paths = [os.path.join(audio_folder_path_spoof, filename) for filename in os.listdir(audio_folder_path_spoof)]
+        # Extract features
+        spec = get_mel_spectrogram(audio)  # Shape: (128, 216)
+        mfcc = get_mfcc(audio)  # Shape: (13, 216)
+        chroma = get_chroma(audio)  # Shape: (12, 216)
 
-    # Load Labels
-    # spoof is 1, bonafide is 0, see teh first character
-    labels.extend([1 for _ in range(len(os.listdir(audio_folder_path_spoof)))])
+        # Convert MFCC and chroma to tensor and add a batch and channel dimension
+        mfcc_tensor = torch.tensor(mfcc).unsqueeze(0).unsqueeze(0)  # Shape: (1, 1, 13, 216)
+        chroma_tensor = torch.tensor(chroma).unsqueeze(0).unsqueeze(0)  # Shape: (1, 1, 12, 216)
+
+        # Interpolate to target size (128, 216)
+        mfcc_resized = F.interpolate(mfcc_tensor, size=target_size, mode='bilinear', align_corners=False).squeeze(0).squeeze(0)  # Shape: (128, 216)
+        chroma_resized = F.interpolate(chroma_tensor, size=target_size, mode='bilinear', align_corners=False).squeeze(0).squeeze(0)  # Shape: (128, 216)
+
+        # Convert mel spectrogram to tensor if not already
+        spec_tensor = torch.tensor(spec)
+
+        # Combine the features into a single 3-channel feature vector
+        combined_feature = torch.stack([spec_tensor, mfcc_resized, chroma_resized], dim=0)  # Shape: (3, 128, 216)
+
+        list_features.append(combined_feature)
+
+    return list_features
+
+def generate_dataset(audio_folder_path_bonafide, audio_folder_path_spoof, batch_size=20, train_or_valid=True):
+    audio_paths_bonafide = [os.path.join(audio_folder_path_bonafide, filename) for filename in os.listdir(audio_folder_path_bonafide)]
+    audio_paths_spoof = [os.path.join(audio_folder_path_spoof, filename) for filename in os.listdir(audio_folder_path_spoof)]
+
+    labels = [0] * len(audio_paths_bonafide) + [1] * len(audio_paths_spoof)
     
-    # Load audio spec information(128, 216)
-    for audiopath in audio_paths:
-        audio, _ = load_audio(audiopath, SAMPLE_RATE)
-        # padding 0
-        if len(audio) < AUDIO_LEN:
-            audio = np.pad(audio, (0, AUDIO_LEN - len(audio)), 'constant') # padding zero
-        else:
-            audio = audio[:AUDIO_LEN]
-        spec = get_mel_spectrogram(audio)
-        list_spec.append(spec)
+    target_size = (N_MELS, SPEC_WIDTH)
+    list_features = get_features(target_size, audio_paths_bonafide)
+    list_features.extend(get_features(target_size, audio_paths_spoof))
 
-    # Convert list of spectrograms to a 4D tensor (batch_size, channels, height, width)
-    list_spec = np.array(list_spec)  # Convert list to a numpy array
+    # turn a list containing several tensors into a tensor whose size is (batch_size, 3, 128, 216)
+    # batch_size is the number of containing tensors
+    list_features = torch.stack(list_features)  # Combine features into a single tensor (batch_size, 3, 128, 216)
+
     if train_or_valid:  # Do normalization on train data
-        mean = np.mean(list_spec, axis=0)
-        std = np.std(list_spec, axis=0)
-        # mean.shape : (128, 216)
-        # list_psec.shape : (batch_size, 128, 216)
-        # So, why in here , list_psec can divide mean because
-        # NumPy automatically broadcasts mean and std across the batch_size dimension of list_spec
-        list_spec = (list_spec - mean) / std
-        # Save the mean and std
-        np.save('training_result_mel_spec_data_directly/mean.npy', mean)
-        np.save('training_result_mel_spec_data_directly/std.npy', std)
-
+        mean = list_features.mean(dim=0, keepdim=True)  # Compute mean over batch dimension
+        std = list_features.std(dim=0, keepdim=True)  # Compute std over batch dimension
+        # mean.shape = torch.Size([1, 3, 128, 216]), 1 is due to `keepdim=True`
+        list_features = (list_features - mean) / std
+        torch.save(mean, 'training_result_three_features_directly/mean.pt')
+        torch.save(std, 'training_result_three_features_directly/std.pt')
     else:
-        # Load the mean and std for validation
-        mean = np.load('training_result_mel_spec_data_directly/mean.npy')
-        std = np.load('training_result_mel_spec_data_directly/std.npy')
-        list_spec = (list_spec - mean) / std
+        mean = torch.load('training_result_three_features_directly/mean.pt')
+        std = torch.load('training_result_three_features_directly/std.pt')
+        list_features = (list_features - mean) / std
 
-    list_spec = np.expand_dims(list_spec, axis=1)  # Add a channel dimension after first axis, assuming channel first format (batch_size, 1, height, width)
-    # list_spec[0].shape is (1, 128, 216)
-    # print(list_spec[0].shape)
-    # Create TensorDataset
-    dataset = torch.utils.data.TensorDataset(torch.tensor(list_spec, dtype=torch.float32), torch.tensor(labels, dtype=torch.long))
-    
-    # Create DataLoader for train and validation sets
+    dataset = torch.utils.data.TensorDataset(list_features, torch.tensor(labels, dtype=torch.long))
     data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=train_or_valid, pin_memory=True)
 
     return data_loader
-    
+
 # define CNN model
-class CNN_model10(nn.Module):
+class CNN_model12(nn.Module):
     def __init__(self):
-        super(CNN_model10, self).__init__()
+        super(CNN_model12, self).__init__()
         self.input_layers = nn.ModuleList([
             nn.Sequential(
-                nn.Conv2d(1, 8, 5, stride=1), # kernel = 5*5
+                nn.Conv2d(3, 8, 5, stride=1), # kernel = 5*5
                 nn.ReLU(),
                 nn.BatchNorm2d(8), # 添加批次正規化層，對同一channel作正規化
                 nn.MaxPool2d(2, stride=2) 
@@ -135,7 +133,7 @@ class CNN_model10(nn.Module):
             self.conv_layers.append(
                 nn.MaxPool2d(2, stride=2)
             )
-        # final layer output above is (8, 2, 4) 93312
+        # final layer output above is (8, 2, 4) 
         self.class_layers = nn.ModuleList([
             nn.Sequential(
                 # Flatten layers
@@ -156,7 +154,7 @@ class CNN_model10(nn.Module):
 # 訓練模型
 def training(model):
     # 把結果寫入檔案
-    file = open("training_result_mel_spec_data_directly/training_detail_model10_CH_ver2_normalize.txt", "w")
+    file = open("training_result_three_features_directly/training_detail_model12_CH_ver1_normalize.txt", "w")
     # 紀錄最大驗證集準確率
     max_accuracy = 0
 
@@ -238,7 +236,7 @@ def training(model):
             max_accuracy = accuracy_valid
             save_parameters = True
             if save_parameters:
-                path = 'training_result_mel_spec_data_directly/model_10_CH_ver2_normalize.pth'
+                path = 'training_result_three_features_directly/model_12_CH_ver1_normalize.pth'
                 torch.save(model.state_dict(), path)
                 print(f"====Save parameters in {path}====")
                 file.write(f"====Save parameters in {path}====\n")
@@ -267,13 +265,13 @@ def training(model):
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
     plt.legend(loc='lower right')
-    plt.savefig("training_result_mel_spec_data_directly/CH_ROC10_ver2_normalize.png") 
+    plt.savefig("training_result_three_features_directly/CH_ROC12_ver1_normalize.png") 
 
     # confusion_matrix
     plt.figure()
     cm = confusion_matrix(all_label, all_pred)
     sns.heatmap(cm, annot=True)
-    plt.savefig("training_result_mel_spec_data_directly/CH_Confusion_matrix10_ver2_normalize.png") 
+    plt.savefig("training_result_three_features_directly/CH_Confusion_matrix12_ver1_normalize.png") 
 
 def plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_training_accuracy, Total_validation_accuracy):
     # visualization the loss and accuracy
@@ -284,7 +282,7 @@ def plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_trai
     plt.xlabel('No. of epochs')
     plt.ylabel('Loss')
     plt.legend()
-    plt.savefig("training_result_mel_spec_data_directly/CH_Loss10_ver2_normalize.png") 
+    plt.savefig("training_result_three_features_directly/CH_Loss12_ver1_normalize.png") 
 
     plt.figure()
     plt.plot(range(NUM_EPOCHS), Total_training_accuracy, 'r-', label='Training_accuracy')
@@ -293,7 +291,7 @@ def plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_trai
     plt.xlabel('No. of epochs')
     plt.ylabel('Accuracy')
     plt.legend()
-    plt.savefig("training_result_mel_spec_data_directly/CH_Accuracy10_ver2_normalize.png") 
+    plt.savefig("training_result_three_features_directly/CH_Accuracy12_ver1_normalize.png") 
 
 
 # Start training
@@ -303,14 +301,7 @@ if __name__ == "__main__":
     print(f"Train on {device}.")
 
     # set up a model , turn model into cuda
-    model = CNN_model10().to(device)
-    '''
-    # load P_model7 pth
-    pth_path = '/workspace/model_zoo/model_API2_model7/float/model_7.pth'
-    state_dict = torch.load(pth_path)
-    model.load_state_dict(state_dict)
-    print(f"Load model pth from {pth_path}")
-    '''
+    model = CNN_model12().to(device)
     # Load audio from a Folder
     audio_folder_path_bonafide = r"D:\clone_audio\chinese_audio_dataset_ver3\bonafide\train_audio_with20db_timestretch_thchs30"
     audio_folder_path_spoof = r"D:\clone_audio\chinese_audio_dataset_ver3\spoof\train_audio_with20db_timestretch_suno_gl"
@@ -329,7 +320,7 @@ if __name__ == "__main__":
     # set optimizer
     optimizer = torch.optim.Adam(model.parameters(), lr=LR, betas=(0.9, 0.999))
     # Print the model summary
-    summary(model, (1, 128, 216)) # Input size: (channels, height, width)
+    summary(model, (3, 128, 216)) # Input size: (channels, height, width)
   
     # 初始時間
     start_time = time.time()
@@ -350,3 +341,4 @@ if __name__ == "__main__":
 
     # save the fig of the loss and accuracy
     plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_training_accuracy, Total_validation_accuracy)
+    
