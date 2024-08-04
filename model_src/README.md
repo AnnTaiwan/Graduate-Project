@@ -19,8 +19,18 @@ Note: https://hackmd.io/D5vDB1KiQM60tRxpeXZ9bg?both#731-%E8%A8%93%E7%B7%B4%E6%A8
 * 有用到插值法補齊mfcc跟chroma不夠的值
 * Do normalization on each position of each channel across all batches
 
+### 5. model_9_CH_ver2
+**The original way: use mel-spectrogram as RGB pixel features.**
+* input tensor : (batch size, 3*channels*, 128, 128)
+* 在轉換成mel_spec時，沒有padding 0，讓他保持原始長度
+
+### 6. model_9_CH_ver3
+**The original way: use mel-spectrogram as RGB pixel features.**
+* input tensor : (batch size, 3*channels*, 128, 128)
+* 在轉換成mel_spec時，利用原始音檔來做padding，作法即為將音檔在複製在後面直到滿五秒
+
 ### Testing code:
-* `testing_model9_CH.py` is associated with `SpectrogramDataset.py`.
+* `testing_model9_CH.py`, `testing_model9_CH_ver2.py`, and `testing_model9_CH_ver3.py` is associated with `SpectrogramDataset.py`.
 * `testing_model10_CH.py` is associated with `AudioDataset.py`.
 * `testing_model11_CH.py` is associated with `FeatureDataset.py`.
 * `testing_model12_CH.py` is associated with `AudioDataset_ver2.py`.
