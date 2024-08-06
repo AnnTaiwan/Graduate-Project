@@ -1,6 +1,7 @@
 # Model Experiment
-Note: https://hackmd.io/D5vDB1KiQM60tRxpeXZ9bg?both#731-%E8%A8%93%E7%B7%B4%E6%A8%A1%E5%9E%8B%E8%B3%87%E6%96%99%E7%B4%9A%E8%A8%AD%E8%A8%88%E5%A6%82%E4%B8%8A%E6%89%80%E7%A4%BA
-
+#### Note:   
+CH: https://hackmd.io/D5vDB1KiQM60tRxpeXZ9bg?both#731-%E8%A8%93%E7%B7%B4%E6%A8%A1%E5%9E%8B%E8%B3%87%E6%96%99%E7%B4%9A%E8%A8%AD%E8%A8%88%E5%A6%82%E4%B8%8A%E6%89%80%E7%A4%BA  
+ENG: https://hackmd.io/@NsysuAnn/ryLvAgCF0
 ### 1. model_9_CH
 **The original way: use mel-spectrogram as RGB pixel features.**
 * input tensor : (batch size, 3*channels*, 128, 128)
@@ -29,8 +30,21 @@ Note: https://hackmd.io/D5vDB1KiQM60tRxpeXZ9bg?both#731-%E8%A8%93%E7%B7%B4%E6%A8
 * input tensor : (batch size, 3*channels*, 128, 128)
 * 在轉換成mel_spec時，利用原始音檔來做padding，作法即為將音檔在複製在後面直到滿五秒
 
+### 7. model_9_ENG
+**The original way: use mel-spectrogram as RGB pixel features.**
+* train on ASVspoof2019 dataset
+* input tensor : (batch size, 3*channels*, 128, 128)
+* 在轉換成mel_spec時，利用原始音檔來做padding，作法即為將音檔在複製在後面直到滿五秒
+
+### 8. model_9_ENG_stacked_features
+**The original way: use combined features image as RGB pixel features.**
+* 將三種features合併起來成一張圖片
+* train on ASVspoof2019 dataset
+* input tensor : (batch size, 3*channels*, 128, 128)
+* 在轉換成mel_spec時，利用原始音檔來做padding，作法即為將音檔在複製在後面直到滿五秒
+
 ### Testing code:
-* `testing_model9_CH.py`, `testing_model9_CH_ver2.py`, and `testing_model9_CH_ver3.py` is associated with `SpectrogramDataset.py`.
+* `testing_model9_CH.py`, `testing_model9_CH_ver2.py`, `testing_model9_CH_ver3.py`, `testing_model9_ENG_stacked_features.py`, and `testing_model9_ENG.py` is associated with `SpectrogramDataset.py`.
 * `testing_model10_CH.py` is associated with `AudioDataset.py`.
 * `testing_model11_CH.py` is associated with `FeatureDataset.py`.
 * `testing_model12_CH.py` is associated with `AudioDataset_ver2.py`.
