@@ -80,23 +80,49 @@ if __name__ == "__main__":
 #         if count >= 50:
 #             break
 
-# put the augmented data into train_audio for gl
+# put the augmented data into train_audio for ASVspoof2019
 if __name__ == "__main__":
-    source_folder_path = r"D:\clone_audio\chinese_audio_dataset_ver2_augmented_data\fake\yang_fake\gl_audio_aug_timestretch"
-    dest_folder_path1 = r"D:\clone_audio\chinese_audio_dataset_ver3\temp"
-    dest_folder_path2 = r"D:\clone_audio\chinese_audio_dataset_ver3\train_audio_with20db_timestretch_suno_gl"
+    source_folder_path = r"D:\clone_audio\ASVspoof2019_MyDataset\dataset_ver1\audio\train_audio_aug_add_noise20db"
+    dest_folder_path1 = r"D:\clone_audio\ASVspoof2019_MyDataset\dataset_ver1\audio\temp"
+    dest_folder_path2 = r"D:\clone_audio\ASVspoof2019_MyDataset\dataset_ver1\audio\train_audio_with_noise20db"
     aug_path = os.listdir(dest_folder_path2)
     random.shuffle(aug_path)
-    count = 0
+    count_bonafide = 0
+    count_spoof = 0
+    NUM = 500
     for filename in aug_path:
-        if filename.endswith("gl.wav"):
-            name = filename[:-4] + "_timestretch" + filename[-4:]
+        if filename.startswith("bonafide") and count_bonafide < NUM:
+            name = filename.split('.')[0] + "_noise20db." + filename.split('.')[1]
             source_file_path = os.path.join(source_folder_path, name)
             destination_file_path = os.path.join(dest_folder_path1, name)
-            copy2_file(source_file_path, destination_file_path)  
-            count += 1
-        if count >= 150:
+            copy2_file(source_file_path, destination_file_path) 
+            count_bonafide += 1
+        elif filename.startswith("spoof") and count_spoof < NUM:
+            name = filename.split('.')[0] + "_noise20db." + filename.split('.')[1]
+            source_file_path = os.path.join(source_folder_path, name)
+            destination_file_path = os.path.join(dest_folder_path1, name)
+            copy2_file(source_file_path, destination_file_path) 
+            count_spoof += 1
+        if count_bonafide >= NUM and count_spoof >= NUM:
             break
+
+# put the augmented data into train_audio for gl
+# if __name__ == "__main__":
+#     source_folder_path = r"D:\clone_audio\chinese_audio_dataset_ver2_augmented_data\fake\yang_fake\gl_audio_aug_timestretch"
+#     dest_folder_path1 = r"D:\clone_audio\chinese_audio_dataset_ver3\temp"
+#     dest_folder_path2 = r"D:\clone_audio\chinese_audio_dataset_ver3\train_audio_with20db_timestretch_suno_gl"
+#     aug_path = os.listdir(dest_folder_path2)
+#     random.shuffle(aug_path)
+#     count = 0
+#     for filename in aug_path:
+#         if filename.endswith("gl.wav"):
+#             name = filename[:-4] + "_timestretch" + filename[-4:]
+#             source_file_path = os.path.join(source_folder_path, name)
+#             destination_file_path = os.path.join(dest_folder_path1, name)
+#             copy2_file(source_file_path, destination_file_path)  
+#             count += 1
+#         if count >= 150:
+#             break
 
 # if __name__ == "__main__":
 #     source_folder_path = r"D:\clone_audio\lin_fake"
@@ -122,5 +148,50 @@ if __name__ == "__main__":
 #             source_file_path = os.path.join(inside_dir_path, filename)
 #             destination_file_path = os.path.join(dest_folder_path1, filename)
 #             copy2_file(source_file_path, destination_file_path)  
-            
-    
+
+
+# if __name__ == "__main__":
+#     source_folder_path = r"D:\clone_audio\yang_chinesedata\real\thchs30\thchs30"
+#     dest_folder_path1 = r"D:\clone_audio\chinese_audio_dataset_ver3\bonafide\train_audio_not_with_aug_data"
+#     dest_folder_path2 = r"D:\clone_audio\chinese_audio_dataset_ver3\bonafide\not_used_thchs30_300"
+#     dest_folder_path3 = r"D:\clone_audio\chinese_audio_dataset_ver3\bonafide\test_audio"
+#     dest_folder_path4 = r"D:\clone_audio\chinese_audio_dataset_ver3\bonafide\val_audio"
+
+#     filename = os.listdir(source_folder_path)
+#     random.shuffle(filename)
+#     for i in filename[:700]:
+#         source_file_path = os.path.join(source_folder_path, i)
+#         destination_file_path = os.path.join(dest_folder_path1, i)
+#         copy2_file(source_file_path, destination_file_path)  
+#     for i in filename[700:950]:
+#         source_file_path = os.path.join(source_folder_path, i)
+#         destination_file_path = os.path.join(dest_folder_path2, i)
+#         copy2_file(source_file_path, destination_file_path)  
+
+#     for i in filename[950:1050]:
+#         source_file_path = os.path.join(source_folder_path, i)
+#         destination_file_path = os.path.join(dest_folder_path3, i)
+#         copy2_file(source_file_path, destination_file_path)  
+
+#     for i in filename[1050:1200]:
+#         source_file_path = os.path.join(source_folder_path, i)
+#         destination_file_path = os.path.join(dest_folder_path4, i)
+#         copy2_file(source_file_path, destination_file_path)                    
+
+# # put the augmented data into train_audio for thchs30
+# if __name__ == "__main__":
+#     source_folder_path = r"D:\clone_audio\chinese_audio_dataset_ver2_augmented_data\real\thchs30_audio_aug_add_noise20db"
+#     dest_folder_path1 = r"D:\clone_audio\chinese_audio_dataset_ver3\bonafide\temp"
+#     dest_folder_path2 = r"D:\clone_audio\chinese_audio_dataset_ver3\bonafide\train_audio_with20db_timestretch_thchs30"
+#     aug_path = os.listdir(dest_folder_path2)
+#     random.shuffle(aug_path)
+#     count = 0
+#     for filename in aug_path:
+#         if filename.startswith("B"):
+#             name = filename[:-4] + "_noise20db" + filename[-4:]
+#             source_file_path = os.path.join(source_folder_path, name)
+#             destination_file_path = os.path.join(dest_folder_path1, name)
+#             copy2_file(source_file_path, destination_file_path)  
+#             count += 1
+#         if count >= 200:
+#             break

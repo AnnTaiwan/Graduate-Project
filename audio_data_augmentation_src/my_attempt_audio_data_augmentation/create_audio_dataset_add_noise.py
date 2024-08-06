@@ -96,12 +96,13 @@ def save_audio_with_pydub(audio, sr, file_path):
         channels=1
     )
     audio_segment.export(file_path, format=file_path.split('.')[-1])
+# used for many folders in source_dir
 '''
 if __name__ == "__main__":
     # Setting SNR
     SNR_DB = 20
-    source_dir_path = r"D:\clone_audio\yang_chinesedata\fake\elevenlabs"
-    dest_dir_path = r"D:\clone_audio\chinese_audio_dataset_ver2\fake\yang_fake\elvenlabs_audio_aug_add_noise"
+    source_dir_path = r"D:\clone_audio\ASVspoof2019_MyDataset\dataset_ver1\audio\train_audio"
+    dest_dir_path = r"D:\clone_audio\ASVspoof2019_MyDataset\dataset_ver1\audio\train_audio_aug_add_noise20db"
     os.makedirs(dest_dir_path, exist_ok=True)
 
     for dir_name in os.listdir(source_dir_path):
@@ -125,18 +126,14 @@ if __name__ == "__main__":
         print(f"Finished creating new noise-added audios from {inside_dir_path} into {dest_dir_path}.")
 
     print(f"Finished creating new noise-added audios into {dest_dir_path}.")
-
-
-
 '''
-# Many folders in folder
 # use for wav
 if __name__ == "__main__":
     # some const variable
     # setting SNR_DB
-    SNR_DB = 15
-    source_dir_path = r"D:\clone_audio\yang_chinesedata\real\thchs30\thchs30"
-    dest_dir_path = r"D:\clone_audio\chinese_audio_dataset_ver2\real\thchs30_audio_aug_timestretch"
+    SNR_DB = 35
+    source_dir_path = r"D:\clone_audio\ASVspoof2019_MyDataset\dataset_ver1\audio\train_audio"
+    dest_dir_path = r"D:\clone_audio\ASVspoof2019_MyDataset\dataset_ver1\audio\train_audio_aug_add_noise35db"
     os.makedirs(dest_dir_path, exist_ok=True)
     for filename in os.listdir(source_dir_path):
         audio_path = os.path.join(source_dir_path, filename)
@@ -147,7 +144,7 @@ if __name__ == "__main__":
         augmented_audio = apply_noise_to_audio(audio, sr, SNR_DB)
                 
         # Save augmented audio, preserving the original file extension
-        output_path = os.path.join(dest_dir_path, f"{filename.split('.')[0]}_timestretch.{filename.split('.')[-1]}")
+        output_path = os.path.join(dest_dir_path, f"{filename.split('.')[0]}_noise{SNR_DB}db.{filename.split('.')[-1]}")
         # save_audio_with_pydub(augmented_audio, sr, output_path)
         sf.write(output_path, augmented_audio, sr)
 
