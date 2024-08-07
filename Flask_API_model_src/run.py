@@ -4,11 +4,10 @@ This code is used to activate a local server, and then I will use Postman to act
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from deep_learning_model_module import CNN_model9, save_mel_spec, model_predict
-from observe_audio_function_ver3 import load_audio, get_mel_spectrogram, plot_mel_spectrogram, AUDIO_LEN, SAMPLE_RATE
+from observe_audio_function_ver3 import SAMPLE_RATE
 import os
 import matplotlib
 import torch
-import torch.nn as nn
 
 # Set Matplotlib backend if needed, Agg is not interactive backend.
 # To prevent warning from "Starting a Matplotlib GUI outside of the main thread will likely fail."
