@@ -16,12 +16,17 @@ matplotlib.use('Agg')  # Set the backend to 'Agg' before importing pyplot
 AUDIO_FOLDER_NAME = "audio_files"
 IMAGE_FOLDER_NAME = "image_files"
 PTH_PATH = r"D:\graduate_project\model_src\training_result_mel_spec_model9_ENG\model_9_ENG_ver1.pth"
+
+model = None
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 app = Flask(__name__)
 CORS(app)
 
+    
 @app.route('/')
-def index():
-    return 'Hello world!!'
+def home():
+    return 'Hello world!! Today is awful.'
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -30,14 +35,8 @@ def predict():
         i_path = os.path.join(IMAGE_FOLDER_NAME, i)
         os.remove(i_path)
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Predict on {device}.")
-    model = CNN_model9()
-    # Move model to device
-    model.to(device)
-    # load pth for model
-    state_dict = torch.load(PTH_PATH)
-    model.load_state_dict(state_dict)
+    
     
     # Check if any file was uploaded
     if not any(request.files.values()):
@@ -84,4 +83,12 @@ if __name__ == '__main__':
         os.makedirs(AUDIO_FOLDER_NAME)
     if not os.path.exists(IMAGE_FOLDER_NAME):
         os.makedirs(IMAGE_FOLDER_NAME)
+    # assign model
+    model = CNN_model9()
+    # Move model to device
+    model.to(device)
+    # load pth for model
+    state_dict = torch.load(PTH_PATH)
+    model.load_state_dict(state_dict)
+
     app.run(host='127.0.0.1', port=5000, debug=True) # `127.0.0.1` only allowed local pc can visit
