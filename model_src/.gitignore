@@ -1,0 +1,10 @@
+training_result*/
+training_result*/*.csv
+training_result*/*.png
+training_result*/*.txt
+training_result*/*.pth
+*.csv
+*.png
+*.txt
+*.pth
+__pycache__
