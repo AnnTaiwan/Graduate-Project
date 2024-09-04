@@ -1,46 +1,17 @@
 #!/bin/bash
 
-echo "####################################"
-echo "## This is used for CHINESE model ##"
-echo "####################################"
+echo "################################################"
+echo "## This is used for predicting uploaded audio ##"
+echo "################################################"
 
 
 # Prepare folders for input and output
-AUDIO_FOLDER="./audio"                               # The folder where original audio files are stored
+AUDIO_FOLDER="./upload_audio"                               # The folder where original audio files are stored
 NOISE_REDUCE_AUDIO_FOLDER="./noise_reduce_audio"     # The folder where NOISE-REDUCE audio files are stored
 FIX_AUDIO_FOLDER="./fix_audio"                       # The folder where fix audios are saved   
 TXT_FOLDER="./mel_spec_txt"                          # The folder where mel spectrogram txt files will be saved
 IMG_FOLDER="./mel_spec_images_denosie"                       # The folder where mel spectrogram images will be saved
 PROFILE="./profile"                                  # The folder where the profile.wav needed by denoise-step and recording the noise is saved
-
-
-###################################### RECORDING ###############################################################
-# Define a variable to indicate if recording is done
-recording_done=false
-
-# Function to capture Ctrl+C signal and stop recording
-stop_recording() {
-    echo "## STOP RECORDING ##"
-    kill $PID
-    recording_done=true
-}
-
-# Capture Ctrl+C signal (SIGINT)
-trap stop_recording SIGINT
-
-# Start recording
-echo "## (1) Now you can rercord an audio, intput ctrl+c to end recording..."
-gst-launch-1.0 alsasrc device=hw:0 ! audioconvert ! wavenc ! filesink location=$AUDIO_FOLDER/audio1.wav &
-PID=$!
-
-# Wait for the recording process to complete
-while [ "$recording_done" = false ]; do
-    sleep 1
-done
-
-# Ensure the recording process has stopped
-wait $PID
-###################################### RECORDING EREA END ########################################################
 
 
 # Create output folders if they don't exist
@@ -70,7 +41,7 @@ echo "## (4) Convert audio files to mel-spectrogram text files..."
 # Iterate over each file in the audio folder
 for audio_file in "$NOISE_REDUCE_AUDIO_FOLDER"/*; do
     # Run the mel-spectrogram calculation for each file
-    ./cal_mel_spec_ver4 $audio_file $TXT_FOLDER
+    ./cal_mel_spec_ver4 "$audio_file" "$TXT_FOLDER"
     echo "Generated txt files in $TXT_FOLDER from $audio_file"
 done
 
@@ -82,6 +53,7 @@ for txt_file in "$TXT_FOLDER"/*.txt; do
     base_name=$(basename "$txt_file" .txt)
     # Correct string concatenation for the image name
     image_name="image_$base_name"
+    
     # Run the plot script for each txt file and save the image
     #./plot_mel_spec_from_txt_scale_ver2 "$txt_file" "$IMG_FOLDER/$image_name.png"
     ./plot_mel_spec_from_txt_ver2 "$txt_file" "$IMG_FOLDER/$image_name.png"
