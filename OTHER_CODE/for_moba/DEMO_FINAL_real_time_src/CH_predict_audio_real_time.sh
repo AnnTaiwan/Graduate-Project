@@ -1,5 +1,6 @@
 #!/bin/bash
 
+cd ../
 echo "####################################"
 echo "## This is used for CHINESE model ##"
 echo "####################################"
@@ -24,11 +25,13 @@ mkdir -p $PROFILE
 mkdir -p $PROCESSED_AUDIO
 
 rm -rf $PROCESSED_AUDIO/*
+rm current_dealing_audio.txt
 # Infinite loop to process files until stopped
 while true; do
     # Check if there are any audio files in the folder
     if ls $AUDIO_FOLDER/*.wav 1> /dev/null 2>&1; then
         for audio_file in $AUDIO_FOLDER/*.wav; do
+            echo $audio_file > current_dealing_audio.txt
             # let the output folders be empty
             rm -rf $TXT_FOLDER/*
             rm -rf $IMG_FOLDER/*
