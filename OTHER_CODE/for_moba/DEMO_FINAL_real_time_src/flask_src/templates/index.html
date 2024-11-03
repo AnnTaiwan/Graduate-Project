@@ -3,181 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Recording and Processing</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title>Audio Processing Application</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4; /* Light background color */
-            color: #333; /* Dark text color */
-            text-align: center; /* Center text */
-            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 80vh;
+            margin: 0;
+            background-color: #f5f5f5;
+            color: #333;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            max-width: 1000px;
         }
         h1 {
-            color: #2c3e50; /* Dark blue color */
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            color: #007bff;
         }
-        button {
-            padding: 10px 20px;
-            margin: 10px;
-            border: none;
+        p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        .button-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+        .button {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
             border-radius: 5px;
+            border: none;
             cursor: pointer;
-            font-size: 16px;
-            transition: opacity 0.3s; /* Smooth transition for opacity */
+            transition: background-color 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        button:hover {
-            opacity: 0.8; /* Reduce opacity on hover */
+        .button:hover {
+            background-color: #04478e;
         }
-        button#startRecording {
-            background-color: #27ae60; /* Green color */
-            color: white;
-        }
-        button#stopRecording {
-            background-color: #e74c3c; /* Red color */
-            color: white;
-        }
-        button#startProcessing {
-            background-color: #3498db; /* Blue color */
-            color: white;
-        }
-        button#stopProcessing {
-            background-color: #e67e22; /* Orange color */
-            color: white;
-        }
-        button#clearHistory {
-            background-color: #9b59b6; /* Purple color */
-            color: white;
-        }
-        .output-container {
-            margin-top: 20px;
-            display: flex; /* Use flexbox for layout */
-            justify-content: space-between; /* Space out the output areas */
-            flex-wrap: wrap; /* Allow wrapping for smaller screens */
-        }
-        #audioFiles, #result {
-            flex: 1; /* Allow items to grow */
-            margin: 10px; /* Space around items */
-            padding: 15px;
-            background: #ffffff; /* White background for results */
-            border: 1px solid #ccc; /* Light border */
-            border-radius: 5px; /* Rounded corners */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Soft shadow for depth */
-            min-width: 300px; /* Minimum width for smaller screens */
-            max-height: 300px; /* Maximum height for scrolling */
-            overflow-y: auto; /* Enable vertical scrolling */
-            text-align: left; /* Left align text */
-        }
-        .audio-item, .result-item {
-            margin-bottom: 5px; /* Space between items */
+        .icon {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
-
-<h1>Audio Recording and Processing</h1>
-<button id="startRecording">Start Recording</button>
-<button id="stopRecording" disabled>Stop Recording</button>
-<button id="startProcessing">Start Processing</button>
-<button id="stopProcessing" disabled>Stop Processing</button>
-<button id="clearHistory">Clear History</button> <!-- Clear History Button -->
-
-<div class="output-container">
-    <div id="audioFiles"></div>
-    <div id="result"></div>
-</div>
-
-<script>
-    $(document).ready(function() {
-        function updateAudioFiles() {
-            $.get('/audio_files', function(data) {
-                // Prepare audio files output
-                let audioFilesHtml = '<strong>Audio Files:</strong><br>';
-                data.files.forEach(file => {
-                    audioFilesHtml += `<div class="audio-item">${file}</div>`;
-                });
-                
-                // Prepare history output
-                audioFilesHtml += '<strong>History:</strong><br>';
-                data.history.forEach(historyEntry => {
-                    if (historyEntry.length > 0) {
-                        audioFilesHtml += `<div class="audio-item">${historyEntry.join(', ')}</div>`;
-                    } else {
-                        audioFilesHtml += `<div class="audio-item">No audio recorded</div>`;
-                    }
-                });
-
-                $('#audioFiles').html(audioFilesHtml);
-                $('#audioFiles').scrollTop($('#audioFiles')[0].scrollHeight); // Scroll to bottom
-            });
-        }
-
-        function updateResult() {
-            $.get('/result', function(data) {
-                // Prepare result output
-                let resultHtml = `<strong>Result:</strong> ${data.result}<br>`;
-                resultHtml += `<strong>Dealing Audio:</strong> ${data.dealing_audio}<br>`;
-                resultHtml += '<strong>History:</strong><br>';
-                data.history.forEach(entry => {
-                    resultHtml += `<div class="result-item">${entry}</div>`;
-                });
-
-                $('#result').html(resultHtml);
-                $('#result').scrollTop($('#result')[0].scrollHeight); // Scroll to bottom
-            });
-        }
-
-        $('#startRecording').click(function() {
-            $.post('/start_recording', function(response) {
-                alert(response.status);
-                if (response.is_recording) {
-                    $('#startRecording').attr('disabled', true);
-                    $('#stopRecording').attr('disabled', false);
-                    $('#startProcessing').attr('disabled', false); // Enable processing when recording starts
-                }
-            });
-        });
-
-        $('#stopRecording').click(function() {
-            $.post('/stop_recording', function(response) {
-                alert(response.status);
-                $('#startRecording').attr('disabled', false);
-                $('#stopRecording').attr('disabled', true);
-            });
-        });
-
-        $('#startProcessing').click(function() {
-            $.post('/start_processing', function(response) {
-                alert(response.status);
-                if (response.is_processing) {
-                    $('#startProcessing').attr('disabled', true);
-                    $('#stopProcessing').attr('disabled', false);
-                }
-            });
-        });
-
-        $('#stopProcessing').click(function() {
-            $.post('/stop_processing', function(response) {
-                alert(response.status);
-                $('#startProcessing').attr('disabled', false);
-                $('#stopProcessing').attr('disabled', true);
-            });
-        });
-
-        // Clear history button click handler
-        $('#clearHistory').click(function() {
-            $.post('/clear_history', function(response) {
-                alert(response.status);
-                updateAudioFiles(); // Refresh audio files
-                updateResult(); // Refresh result
-            });
-        });
-
-        setInterval(function() {
-            updateAudioFiles();
-            updateResult();
-        }, 3000); // Update every 3 seconds
-    });
-</script>
-
+    <div class="container">
+        <img src="https://img.icons8.com/ios-filled/50/007bff/audio-wave.png" alt="Audio Icon" class="icon">
+        <h1>Audio Processing Application</h1>
+        <h2>Detect AI-generated voice</h2>
+        <p>Welcome to the Audio Processing Application!</p>
+        <p>This tool allows you to record and process audio files in different languages.</p>
+        <p>Choose your preferred language below to begin predicting audio to see if it is AI-generated voice.</p>
+        <div class="button-container">
+            <a href="/CH_predict" class="button">Chinese Audio Prediction</a>
+            <a href="/ENG_predict" class="button">English Audio Prediction</a>
+        </div>
+    </div>
 </body>
 </html>

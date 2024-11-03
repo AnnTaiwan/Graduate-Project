@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 import threading
 import subprocess
 import time
@@ -20,7 +20,8 @@ dealing_audio_text = ""
 # Process references for later termination
 recording_process = None
 processing_process = None
-
+# predicted language mode
+mode = "CH"
 # Function to update audio files in the folder
 def update_audio_files():
     global audio_files
@@ -95,7 +96,7 @@ def record_audio():
     update_audio_files_thread.join()
 
 # Function to process audio
-def process_audio():
+def process_audio_CH():
     global processing_process
     stop_processing_event.clear()  # Ensure processing starts from scratch
 
@@ -107,6 +108,21 @@ def process_audio():
     processing_process = subprocess.Popen("sh ../CH_predict_audio_real_time.sh", shell=True)
     processing_process.wait()  # Wait for the process to finish
     stop_processing_event.set()  # Set the stop flag to true when processing finishes
+
+# Function to process audio
+def process_audio_ENG():
+    global processing_process
+    stop_processing_event.clear()  # Ensure processing starts from scratch
+
+    # Start monitoring dealing audio and result text in separate threads
+    threading.Thread(target=monitor_dealing_audio).start()
+    threading.Thread(target=monitor_result_text).start()
+
+    # Execute the processing shell script
+    processing_process = subprocess.Popen("sh ../ENG_predict_audio_real_time.sh", shell=True)
+    processing_process.wait()  # Wait for the process to finish
+    stop_processing_event.set()  # Set the stop flag to true when processing finishes
+
 
 # Start recording
 @app.route('/start_recording', methods=['POST'])
@@ -126,8 +142,12 @@ def start_processing():
     global processing_process
     if processing_process is None:  # Allow starting if not running
         stop_processing_event.clear()  # Clear the stop event
-        processing_thread = threading.Thread(target=process_audio)
-        processing_thread.start()
+        if(mode == "CH"):
+            processing_thread = threading.Thread(target=process_audio_CH)
+            processing_thread.start()
+        else:
+            processing_thread = threading.Thread(target=process_audio_ENG)
+            processing_thread.start()
         return jsonify(status="Processing started", is_processing=True)
     else:
         return jsonify(status="Processing already in progress", is_processing=False)
@@ -197,10 +217,52 @@ def get_audio_files():
 def get_result():
     return jsonify(result=result_text, history=result_history, dealing_audio=dealing_audio_text)
 
+# Exit current mode safely
+@app.route('/exit_mode', methods=['POST'])
+def exit_mode():
+    global audio_files, audio_history, result_text, result_history, dealing_audio_text
+    global recording_process, processing_process
+
+    # Clear variables
+    audio_files = []
+    audio_history = []
+    result_text = ""
+    result_history = []
+    dealing_audio_text = ""
+
+    stop_recording_event.set()
+    stop_processing_event.set()
+
+    if recording_process is not None:
+        recording_process.terminate()
+        recording_process = None
+
+    if processing_process is not None:
+        processing_process.terminate()
+        processing_process = None
+
+    # Reset event flags to allow new operations
+    stop_recording_event.clear()  # Allow new recording
+    stop_processing_event.clear()  # Allow new processing
+    
+    return jsonify(status="Exited mode and stopped all processes")
+
 # Home page
 @app.route('/')
 def index():
     return render_template('index.html')
+# CH page
+@app.route('/CH_predict')
+def index_CH():
+    global mode
+    mode = "CH"
+    return render_template('index_CH_predict.html')
+# ENG page
+@app.route('/ENG_predict')
+def index_ENG():
+    global mode
+    mode = "ENG"
+    return render_template('index_ENG_predict.html')
 
 if __name__ == '__main__':
-    app.run(host='192.168.137.24', port=5000, debug=True)
+    app.run(host='192.168.137.159', port=5000, debug=True)

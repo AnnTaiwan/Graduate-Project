@@ -1,5 +1,6 @@
 #!/bin/bash
 
+cd ../
 echo "####################################"
 echo "## This is used for ENGLISH model ##"
 echo "####################################"
@@ -29,6 +30,7 @@ while true; do
     # Check if there are any audio files in the folder
     if ls $AUDIO_FOLDER/*.wav 1> /dev/null 2>&1; then
         for audio_file in $AUDIO_FOLDER/*.wav; do
+            echo $audio_file > current_dealing_audio.txt
             # let the output folders be empty
             rm -rf $TXT_FOLDER/*
             rm -rf $IMG_FOLDER/*
@@ -76,6 +78,7 @@ while true; do
             # After processing, move the processed file to the new location
             mv "$audio_file" "$new_audio_name"
             # ./client_ver2
+            sleep 2  
         done
     else
         echo "No audio files found. Waiting..."

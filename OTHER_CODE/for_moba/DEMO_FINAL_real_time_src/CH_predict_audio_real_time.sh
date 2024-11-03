@@ -41,8 +41,8 @@ while true; do
             
             # Processing the detected audio file
             echo "## (2) Fixing the audio $audio_file, saving the revised audio into $FIX_AUDIO_FOLDER/ "
-            sox $audio_file $FIX_AUDIO_FOLDER/audio_fix.wav
-
+            # sox -t wav $audio_file -r 22050 -b 16 $FIX_AUDIO_FOLDER/audio_fix.wav channels 1
+            sox  $audio_file $FIX_AUDIO_FOLDER/audio_fix.wav
             echo "## (3) Reducing noise and increasing volume in audio_fix.wav, saving into $NOISE_REDUCE_AUDIO_FOLDER/ "
             sh denoise_add_volume_CH.sh $FIX_AUDIO_FOLDER/audio_fix.wav $NOISE_REDUCE_AUDIO_FOLDER/audio_denoise.wav $PROFILE/audio_profile.prof
 
@@ -79,6 +79,7 @@ while true; do
             # After processing, move the processed file to the new location
             mv "$audio_file" "$new_audio_name"
             # ./client_ver2
+            sleep 2  
         done
     else
         echo "No audio files found. Waiting..."
