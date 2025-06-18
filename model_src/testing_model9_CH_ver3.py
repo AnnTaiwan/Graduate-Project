@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import os
 
-from P_model_9_CH import IMAGE_SIZE, CNN_model9
+from P_model_9_CH_ver3 import IMAGE_SIZE, CNN_model9
 from SpectrogramDataset import SpectrogramDataset
 
 from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score, classification_report

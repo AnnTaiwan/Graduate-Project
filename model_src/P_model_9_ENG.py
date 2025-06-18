@@ -3,6 +3,46 @@
 2. input mel_spec image ,and use RGB pixel value as input feature
 3. Use mel_spec which padded the original audio into 5 seconds.
 4. Used for ENGLISH AUDIO, `ASVspoof2019`
+----------------------------------------------------------
+ver1:
+LR = 0.001
+batch_size_train = 50
+batch_size_valid = 50
+NUM_EPOCHS = 25
+
+IMAGE_SIZE = 128
+----------------------------------------------------------
+ver2:
+LR = 0.01
+batch_size_train = 20
+batch_size_valid = 20
+NUM_EPOCHS = 25
+
+IMAGE_SIZE = 128
+----------------------------------------------------------
+ver3:
+LR = 0.005
+batch_size_train = 200
+batch_size_valid = 200
+NUM_EPOCHS = 25
+
+IMAGE_SIZE = 128
+----------------------------------------------------------
+ver4:
+LR = 0.01
+batch_size_train = 200
+batch_size_valid = 200
+NUM_EPOCHS = 25
+
+IMAGE_SIZE = 128
+----------------------------------------------------------
+ver5:
+LR = 0.005
+batch_size_train = 100
+batch_size_valid = 100
+NUM_EPOCHS = 25
+
+IMAGE_SIZE = 128
 '''
 from PIL import Image
 import torch
@@ -19,7 +59,7 @@ import os
 from torchsummary import summary
 import time
 # Hyper Parameters
-LR = 0.001
+LR = 0.005
 batch_size_train = 50
 batch_size_valid = 50
 NUM_EPOCHS = 25
@@ -136,7 +176,7 @@ class CNN_model9(nn.Module):
 # 訓練模型
 def training(model):
     # 把結果寫入檔案
-    file = open("training_result_mel_spec_model9_ENG/training_detail9_ENG_ver1.txt", "w")
+    file = open("training_result_mel_spec_model9_ENG/training_detail9_ENG_ver5.txt", "w")
     # 紀錄最大驗證集準確率
     max_accuracy = 0
 
@@ -218,7 +258,7 @@ def training(model):
             max_accuracy = accuracy_valid
             save_parameters = True
             if save_parameters:
-                path = 'training_result_mel_spec_model9_ENG/model_9_ENG_ver1.pth'
+                path = 'training_result_mel_spec_model9_ENG/model_9_ENG_ver5.pth'
                 torch.save(model.state_dict(), path)
                 print(f"====Save parameters in {path}====")
                 file.write(f"====Save parameters in {path}====\n")
@@ -247,13 +287,13 @@ def training(model):
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
     plt.legend(loc='lower right')
-    plt.savefig("training_result_mel_spec_model9_ENG/ENG_ROC9_ver1.png") 
+    plt.savefig("training_result_mel_spec_model9_ENG/ENG_ROC9_ver5.png") 
 
     # confusion_matrix
     plt.figure()
     cm = confusion_matrix(all_label, all_pred)
     sns.heatmap(cm, annot=True)
-    plt.savefig("training_result_mel_spec_model9_ENG/ENG_Confusion_matrix9_ver1.png") 
+    plt.savefig("training_result_mel_spec_model9_ENG/ENG_Confusion_matrix9_ver5.png") 
 
 def plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_training_accuracy, Total_validation_accuracy):
     # visualization the loss and accuracy
@@ -264,7 +304,7 @@ def plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_trai
     plt.xlabel('No. of epochs')
     plt.ylabel('Loss')
     plt.legend()
-    plt.savefig("training_result_mel_spec_model9_ENG/ENG_Loss9_ver1.png") 
+    plt.savefig("training_result_mel_spec_model9_ENG/ENG_Loss9_ver5.png") 
 
     plt.figure()
     plt.plot(range(NUM_EPOCHS), Total_training_accuracy, 'r-', label='Training_accuracy')
@@ -273,7 +313,7 @@ def plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_trai
     plt.xlabel('No. of epochs')
     plt.ylabel('Accuracy')
     plt.legend()
-    plt.savefig("training_result_mel_spec_model9_ENG/ENG_Accuracy9_ver1.png") 
+    plt.savefig("training_result_mel_spec_model9_ENG/ENG_Accuracy9_ver5.png") 
 
 
 # Start training

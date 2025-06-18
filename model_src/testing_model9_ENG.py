@@ -101,8 +101,10 @@ if __name__ == "__main__":
     model = CNN_model9()
     # Move model to device
     model.to(device)
-    state_dict = torch.load('training_result_mel_spec_model9_ENG/model_9_ENG_ver1.pth')
+    pth_path = 'training_result_mel_spec_model9_ENG/model_9_ENG_ver5.pth'
+    state_dict = torch.load(pth_path)
     model.load_state_dict(state_dict)
+    print(f"Load pth from {pth_path}")
     # set loss function
     criterion = nn.CrossEntropyLoss()
 
@@ -121,6 +123,6 @@ if __name__ == "__main__":
     
     # turn dict1 into csv file
     output_df = pd.DataFrame(dict1)
-    csv_file_path = "training_result_mel_spec_model9_ENG/testing_result9_ENG_ver1.csv"
+    csv_file_path = "training_result_mel_spec_model9_ENG/testing_result9_ENG_ver5.csv"
     output_df.to_csv(csv_file_path, index=False)
     print(f"Data has been successfully exported to {csv_file_path}")

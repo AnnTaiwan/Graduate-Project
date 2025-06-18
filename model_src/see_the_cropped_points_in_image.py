@@ -7,7 +7,9 @@ import matplotlib.pyplot as plt
 from PIL import Image
 import numpy as np
 
-filepath = r"D:\clone_audio\chinese_audio_dataset_ver3\test_mel_spec\bonafide_melspec_SSB01330093.png"
+filepath = r"D:\graduate_project\OTHER_CODE\for_moba\August_21_testing\mel_spectrogram.png"
+# filepath = r"D:\graduate_project\feature_extraction_src\three.png"
+
 img = Image.open(filepath)
 cropped_image = crop_with_points(filepath).convert('RGB')
 

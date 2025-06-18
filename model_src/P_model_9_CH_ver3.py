@@ -2,6 +2,8 @@
 1. Use crop_with_points to remove margin
 2. input mel_spec image ,and use RGB pixel value as input feature
 3. Use mel_spec which padded the original audio into 5 seconds.
+4. use pretrain model13 eng in {filename}_pretrain_verX , X means version of pretrained ENG model
+5. verX means not with pretrain model9
 '''
 from PIL import Image
 import torch
@@ -135,7 +137,7 @@ class CNN_model9(nn.Module):
 # 訓練模型
 def training(model):
     # 把結果寫入檔案
-    file = open("training_result_mel_spec_ver3/training_detail_model9_CH.txt", "w")
+    file = open("training_result_mel_spec_ver3/training_detail_model9_CH_pretrain_ver3.txt", "w")
     # 紀錄最大驗證集準確率
     max_accuracy = 0
 
@@ -217,7 +219,7 @@ def training(model):
             max_accuracy = accuracy_valid
             save_parameters = True
             if save_parameters:
-                path = 'training_result_mel_spec_ver3/model_9_CH_ver1.pth'
+                path = 'training_result_mel_spec_ver3/model_9_CH_pretrain_ver3.pth'
                 torch.save(model.state_dict(), path)
                 print(f"====Save parameters in {path}====")
                 file.write(f"====Save parameters in {path}====\n")
@@ -246,13 +248,13 @@ def training(model):
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
     plt.legend(loc='lower right')
-    plt.savefig("training_result_mel_spec_ver3/CH_ROC9.png") 
+    plt.savefig("training_result_mel_spec_ver3/CH_ROC9_pretrain_ver3.png") 
 
     # confusion_matrix
     plt.figure()
     cm = confusion_matrix(all_label, all_pred)
     sns.heatmap(cm, annot=True)
-    plt.savefig("training_result_mel_spec_ver3/CH_Confusion_matrix9.png") 
+    plt.savefig("training_result_mel_spec_ver3/CH_Confusion_matrix9_pretrain_ver3.png") 
 
 def plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_training_accuracy, Total_validation_accuracy):
     # visualization the loss and accuracy
@@ -263,7 +265,7 @@ def plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_trai
     plt.xlabel('No. of epochs')
     plt.ylabel('Loss')
     plt.legend()
-    plt.savefig("training_result_mel_spec_ver3/CH_Loss9.png") 
+    plt.savefig("training_result_mel_spec_ver3/CH_Loss9_pretrain_ver3.png") 
 
     plt.figure()
     plt.plot(range(NUM_EPOCHS), Total_training_accuracy, 'r-', label='Training_accuracy')
@@ -272,7 +274,7 @@ def plt_loss_accuracy_fig(Total_training_loss, Total_validation_loss, Total_trai
     plt.xlabel('No. of epochs')
     plt.ylabel('Accuracy')
     plt.legend()
-    plt.savefig("training_result_mel_spec_ver3/CH_Accuracy9.png") 
+    plt.savefig("training_result_mel_spec_ver3/CH_Accuracy9_pretrain_ver3.png") 
 
 
 # Start training
@@ -284,10 +286,10 @@ if __name__ == "__main__":
     # set up a model , turn model into cuda
     model = CNN_model9().to(device)
     # load P_model7 pth
-    # pth_path = '/workspace/model_zoo/model_API2_model7/float/model_7.pth'
-    # state_dict = torch.load(pth_path)
-    # model.load_state_dict(state_dict)
-    # print(f"Load model pth from {pth_path}")
+    pth_path = 'training_result_mel_spec_model9_ENG/model_9_ENG_ver3.pth'
+    state_dict = torch.load(pth_path)
+    model.load_state_dict(state_dict)
+    print(f"Load model pth from {pth_path}")
     # Load Images from a Folder
     image_folder_path = r"D:\clone_audio\chinese_audio_dataset_ver3\train_mel_spec_padding_original_audio"
     print(f"Loading train data from {image_folder_path}...")
