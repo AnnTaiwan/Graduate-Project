@@ -39,8 +39,8 @@ def copy_random_files(source_dir, destination_dir, num_files=50):
 
 if __name__ == '__main__':
     # 指定來源和目標目錄
-    source_directory = r"D:\clone_audio\chinese_audio_dataset_ver3\test_mel_spec_padding_original_audio"
-    destination_directory = r"D:\clone_audio\chinese_audio_dataset_ver3\used_for_kv260_testing\test_CH_100_3"
+    source_directory = r"D:\clone_audio\ASVspoof2019_MyDataset\dataset_ver1\audio\test_audio"
+    destination_directory = r"D:\clone_audio\ASVspoof2019_MyDataset\dataset_ver1\audio\audio_used_for_kv260_testing\audio_test_ENG_100_1"
     if not os.path.exists(destination_directory):
         os.makedirs(destination_directory)
     # 執行函數，從 source_directory 中複製 50 個 'bonafide' 和 50 個 'spoof' 文件到 destination_directory

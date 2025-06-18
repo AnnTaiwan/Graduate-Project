@@ -54,7 +54,8 @@ def read_and_evaluate(file_path):
     return results
 
 if __name__ == "__main__":
-    file_path = "August_21_testing/output_CH_100_1.txt"  # Update with the correct path if necessary
+    file_path = "./September_14_test_ACC_CH_CPlus2Plot/output_CH_CPlus2Plot_100_3.txt"  # Update with the correct path if necessary
+    
     results = read_and_evaluate(file_path)
     print(f"Cal Acc on {file_path}.")
     count = 0
