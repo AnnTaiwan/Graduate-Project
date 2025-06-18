@@ -13,8 +13,5 @@
 4. [中文語音模型訓練實驗記錄](https://hackmd.io/@NsysuAnn/rkkSEvIL0)
 4. [英文語音模型訓練實驗記錄](https://hackmd.io/@NsysuAnn/ryLvAgCF0)
 
-### Present PDF
-<iframe src="./文獻/專題競賽最終簡報.pdf" width="100%" height="600px"></iframe>
-
 ### Demo video
 [![Watch the video](https://img.youtube.com/vi/tRtrg5NVRNE/0.jpg)](https://www.youtube.com/watch?v=tRtrg5NVRNE)
